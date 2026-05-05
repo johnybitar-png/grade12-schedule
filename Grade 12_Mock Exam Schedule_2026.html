@@ -1,0 +1,3633 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#1d4ed8" />
+  <title>Grade 12 Interactive Schedule, 2026</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #dbe3ef;
+      --primary: #1d4ed8;
+      --primary-soft: #dbeafe;
+      --reading: #e8f3ff;
+      --school: #f1f5f9;
+      --exam: #fff3cd;
+      --official: #fee2e2;
+      --check: #dcfce7;
+      --correction: #ede9fe;
+      --graduation: #fce7f3;
+      --farewell: #fff1f2;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
+
+    button, a, select, input, textarea {
+      -webkit-tap-highlight-color: rgba(29, 78, 216, 0.16);
+    }
+
+    button { touch-action: manipulation; }
+
+    .modal, .calendar-wrap, .table-scroll, .revision-table-wrap {
+      overscroll-behavior: contain;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(29, 78, 216, 0.14), transparent 32%),
+        linear-gradient(135deg, #f8fafc, var(--bg));
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 28px));
+      margin: 28px auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .title-block {
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(219, 227, 239, 0.9);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      flex: 1;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 3vw, 38px);
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      text-align: justify;
+      text-justify: inter-word;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, max-content));
+      gap: 9px 10px;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .legend .light-all-chip {
+      grid-column: 1 / -1;
+      width: fit-content;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      color: white;
+      border-color: rgba(255,255,255,0.25);
+      box-shadow: 0 8px 18px rgba(79, 70, 229, 0.18);
+    }
+
+    .legend .light-all-chip .dot {
+      background: radial-gradient(circle, #ffffff 20%, #fef3c7 45%, #f59e0b 70%);
+      border-color: rgba(255,255,255,0.7);
+    }
+
+    .legend .light-all-chip.active {
+      background: linear-gradient(135deg, #0f172a, #334155);
+      color: white;
+      border-color: #0f172a;
+    }
+
+    .legend .filter-chip {
+      justify-content: center;
+    }
+
+    @media (min-width: 900px) {
+      .legend {
+        grid-template-columns: repeat(4, max-content);
+      }
+      .legend .light-all-chip {
+        grid-column: auto;
+      }
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 13px;
+      color: #374151;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .chip:hover { transform: translateY(-1px); }
+
+    .chip.active {
+      background: #0f172a;
+      color: white;
+      border-color: #0f172a;
+    }
+
+    .chip.active .dot {
+      border-color: rgba(255,255,255,0.55);
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+
+    select, input, textarea, button {
+      font: inherit;
+    }
+
+    .select-control {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 11px 12px;
+      min-width: 220px;
+      outline: none;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .calendar-wrap {
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(219, 227, 239, 0.9);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(155px, 1fr));
+      gap: 10px;
+      min-width: 980px;
+    }
+
+    .weekday {
+      text-align: center;
+      color: #334155;
+      font-weight: 700;
+      background: #e2e8f0;
+      border-radius: 14px;
+      padding: 10px;
+      border: 1px solid var(--line);
+    }
+
+    .day-card {
+      min-height: 118px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .day-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 6px;
+      background: #e5e7eb;
+      transition: background 0.15s ease;
+    }
+
+    .day-card {
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    body.filter-school .day-card.school { background: var(--school); border-color: #cbd5e1; }
+    body.filter-reading .day-card.reading { background: var(--reading); border-color: #bfdbfe; }
+    body.filter-mock .day-card.mock { background: var(--exam); border-color: #facc15; }
+    body.filter-official .day-card.official { background: var(--official); border-color: #fca5a5; }
+    body.filter-check .day-card.check { background: var(--check); border-color: #86efac; }
+    body.filter-correction .day-card.correction { background: var(--correction); border-color: #c4b5fd; }
+    body.filter-graduation .day-card.graduation { background: var(--graduation); border-color: #f9a8d4; }
+    body.filter-farewell .day-card.farewell { background: var(--farewell); border-color: #fb7185; }
+
+    body.filter-school .day-card.school::before { background: #94a3b8; }
+    body.filter-reading .day-card.reading::before { background: #60a5fa; }
+    body.filter-mock .day-card.mock::before { background: #eab308; }
+    body.filter-official .day-card.official::before { background: #ef4444; }
+    body.filter-check .day-card.check::before { background: #22c55e; }
+    body.filter-correction .day-card.correction::before { background: #8b5cf6; }
+    body.filter-graduation .day-card.graduation::before { background: #ec4899; }
+    body.filter-farewell .day-card.farewell::before { background: linear-gradient(90deg, #fb7185, #f59e0b, #60a5fa); }
+
+    .date {
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1.35;
+      white-space: nowrap;
+      letter-spacing: -0.02em;
+    }
+
+    .status {
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .mini-btn {
+      border: 0;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #1f2937;
+      padding: 7px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+      font-weight: 700;
+    }
+
+    .mini-btn:hover { transform: translateY(-1px); background: #e2e8f0; }
+    .mini-btn.official-btn { background: #fecaca; color: #7f1d1d; }
+    .mini-btn.check-btn { background: #bbf7d0; color: #14532d; }
+    .mini-btn.feedback-btn { background: #ddd6fe; color: #4c1d95; }
+    .mini-btn.farewell-btn { background: linear-gradient(135deg, #fecdd3, #fed7aa); color: #881337; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.56);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      width: min(680px, 100%);
+      max-height: 92vh;
+      overflow: auto;
+      background: white;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.65);
+      box-shadow: 0 28px 80px rgba(0,0,0,0.28);
+      padding: 22px;
+      animation: pop 0.18s ease-out;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.97); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .close-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      cursor: pointer;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .branch-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin: 12px 0 16px;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      border-radius: 999px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .exam-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .exam-item {
+      display: grid;
+      grid-template-columns: 125px 1fr;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fafafa;
+      direction: rtl;
+      text-align: right;
+    }
+
+    .exam-time {
+      font-weight: 800;
+      color: #7f1d1d;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .exam-detail-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .exam-meta-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .exam-subject {
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.45;
+    }
+
+    .exam-item.has-proctors {
+      background:
+        linear-gradient(135deg, rgba(254, 226, 226, 0.7), rgba(255, 251, 235, 0.76)),
+        #fff;
+      border-color: #fecaca;
+      box-shadow: 0 10px 24px rgba(127, 29, 29, 0.08);
+    }
+
+    .exam-proctor-row {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      direction: ltr;
+      text-align: left;
+      line-height: 1.45;
+    }
+
+    .proctor-label,
+    .proctor-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: #1e293b;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .proctor-toggle {
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      cursor: pointer;
+      gap: 7px;
+      padding: 6px 11px;
+      background: linear-gradient(135deg, #111827, #334155);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .proctor-toggle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 11px 22px rgba(15, 23, 42, 0.18);
+    }
+
+    .toggle-dot {
+      width: 17px;
+      height: 17px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.25);
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .proctor-flow {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      max-width: 0;
+      opacity: 0;
+      overflow: hidden;
+      transform: translateX(-6px);
+      transition: max-width 0.28s ease, opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .exam-proctor-row.open .proctor-flow {
+      max-width: 760px;
+      opacity: 1;
+      overflow: visible;
+      transform: translateX(0);
+    }
+
+    .exam-proctor-row.open .proctor-toggle {
+      background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+    }
+
+    .proctor-pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #fed7aa;
+      background: #fff7ed;
+      color: #7c2d12;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(124, 45, 18, 0.06);
+    }
+
+    .exam-guidance {
+      border: 1px solid #bfdbfe;
+      background: linear-gradient(135deg, #eff6ff, #ffffff);
+      color: #1e3a8a;
+      border-radius: 16px;
+      padding: 11px 12px;
+      line-height: 1.45;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: left;
+      direction: ltr;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .form-grid .full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 7px;
+      color: #334155;
+    }
+
+    .field {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 11px 12px;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    textarea.field {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .hint {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .preview-card {
+      margin-top: 16px;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      border-radius: 16px;
+      padding: 14px;
+      white-space: pre-wrap;
+      line-height: 1.55;
+      direction: ltr;
+    }
+
+    .share-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .share-btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 11px 14px;
+      cursor: pointer;
+      font-weight: 800;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .share-btn.teams { background: #464eb8; }
+    .share-btn.outlook { background: #0f6cbd; }
+    .share-btn.copy { background: #334155; }
+    .share-btn.native { background: #047857; }
+
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111827;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 80;
+    }
+
+    .toast.show { opacity: 1; }
+
+    .note-box {
+      margin-top: 16px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #7c2d12;
+      padding: 13px 14px;
+      border-radius: 16px;
+      line-height: 1.55;
+      font-size: 14px;
+      text-align: justify;
+      text-justify: inter-word;
+    }
+
+
+    .check-modal {
+      width: min(760px, 100%);
+      background:
+        radial-gradient(circle at top right, rgba(29, 78, 216, 0.14), transparent 32%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid rgba(191, 219, 254, 0.72);
+    }
+
+    .check-modal .modal-header {
+      background: linear-gradient(135deg, #0f172a, #1d4ed8 58%, #38bdf8);
+      color: white;
+      border: 0;
+      border-radius: 18px;
+      padding: 18px 20px;
+      box-shadow: 0 16px 36px rgba(29, 78, 216, 0.22);
+    }
+
+    .check-modal .modal-title {
+      color: white;
+      letter-spacing: -0.01em;
+    }
+
+    .check-modal .subtitle {
+      color: rgba(255, 255, 255, 0.88);
+      font-weight: 700;
+    }
+
+    .check-modal .close-btn {
+      background: rgba(255, 255, 255, 0.14);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.34);
+    }
+
+    .check-modal form {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid #dbeafe;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    }
+
+    .check-modal label {
+      color: #1e3a8a;
+      font-size: 13px;
+    }
+
+    .check-modal .field {
+      border-color: #bfdbfe;
+      background: #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .check-modal .field:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    .check-modal .preview-card {
+      background: linear-gradient(135deg, #eff6ff, #ffffff);
+      border: 1px dashed #60a5fa;
+      color: #0f172a;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+    }
+
+    .check-modal .share-row {
+      justify-content: flex-end;
+    }
+
+    .feedback-modal {
+      width: min(1120px, 100%);
+      background:
+        radial-gradient(circle at top left, rgba(139, 92, 246, 0.12), transparent 34%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid rgba(196, 181, 253, 0.65);
+    }
+
+    .feedback-modal-header {
+      background: linear-gradient(135deg, #312e81, #4f46e5 55%, #7c3aed);
+      color: white;
+      border: 0;
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 16px 36px rgba(79, 70, 229, 0.22);
+    }
+
+    .feedback-title-block .feedback-kicker {
+      display: inline-flex;
+      width: fit-content;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 9px;
+      letter-spacing: 0.02em;
+    }
+
+    .feedback-title-block h2 {
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .feedback-title-block p {
+      margin: 0;
+      color: rgba(255,255,255,0.86);
+      font-weight: 700;
+    }
+
+    .feedback-close {
+      background: rgba(255,255,255,0.14);
+      color: white;
+      border-color: rgba(255,255,255,0.32);
+    }
+
+    .feedback-hero {
+      background: linear-gradient(135deg, #fef3c7, #fffbeb);
+      border: 1px solid #fde68a;
+      border-radius: 18px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      color: #713f12;
+      box-shadow: 0 10px 24px rgba(113, 63, 18, 0.08);
+    }
+
+    .feedback-hero strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .feedback-hero span {
+      display: block;
+      line-height: 1.55;
+      color: #854d0e;
+      font-size: 14px;
+    }
+
+    .program-overview {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 10px 0 16px;
+    }
+
+    .program-card {
+      position: relative;
+      background: white;
+      border: 1px solid #ddd6fe;
+      border-radius: 18px;
+      padding: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 24px rgba(79, 70, 229, 0.08);
+    }
+
+    .program-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 5px;
+      background: linear-gradient(90deg, #4f46e5, #a78bfa, #f59e0b);
+    }
+
+    .program-card strong {
+      display: block;
+      font-size: 11px;
+      color: #6d28d9;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .program-card span {
+      font-weight: 900;
+      color: #1f2937;
+      line-height: 1.35;
+    }
+
+
+    .nowrap-time {
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    .feedback-purpose {
+      margin: 6px 0 18px;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      border-left: 6px solid #4f46e5;
+      color: #312e81;
+      padding: 13px 14px;
+      border-radius: 16px;
+      line-height: 1.6;
+      font-size: 14px;
+      text-align: justify;
+      text-justify: inter-word;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+      border: 1px solid #c7d2fe;
+      border-radius: 18px;
+      margin: 12px 0 20px;
+      background: white;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+      -webkit-overflow-scrolling: touch;
+      contain: layout paint;
+    }
+
+    .program-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 980px;
+      font-size: 13px;
+    }
+
+    .program-table th,
+    .program-table td {
+      border-bottom: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      padding: 11px 10px;
+      vertical-align: top;
+      text-align: left;
+      line-height: 1.38;
+    }
+
+    .program-table th {
+      background: #e0e7ff;
+      color: #312e81;
+      font-weight: 900;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      will-change: transform;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    .program-table thead {
+      position: relative;
+      z-index: 10;
+    }
+
+    .program-table tbody tr:nth-child(even) td { background: #f8fafc; }
+    .program-table tbody tr:hover td { background: #fff7ed; }
+    .program-table tbody td:first-child {
+      font-weight: 900;
+      color: #4c1d95;
+      background: #faf5ff;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 1.25;
+      min-width: 92px;
+      white-space: normal;
+    }
+
+    .group-cell {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      text-align: center;
+    }
+
+    .group-cell strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.15;
+    }
+
+    .group-cell span {
+      display: block;
+      font-size: 12px;
+      line-height: 1.15;
+      opacity: 0.88;
+    }
+
+    .program-table tr:last-child td { border-bottom: 0; }
+    .program-table td:last-child,
+    .program-table th:last-child { border-right: 0; }
+
+    .program-table td.center-cell,
+    .program-table th.center-cell {
+      text-align: center;
+      vertical-align: middle;
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .program-table .after-core {
+      min-width: 145px;
+    }
+
+    .teacher-table .appointments {
+      min-width: 520px;
+    }
+
+    .teacher-table .note-col {
+      width: 86px;
+      min-width: 86px;
+    }
+
+    .hint {
+      text-align: justify;
+      text-justify: inter-word;
+    }
+
+
+    .program-section-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 20px 0 9px;
+      color: #1e293b;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .program-section-title::before {
+      content: "";
+      width: 10px;
+      height: 28px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #4f46e5, #f59e0b);
+    }
+
+    .day-card.graduation {
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .day-card.graduation:hover {
+      transform: translateY(-2px);
+    }
+
+    .day-card.graduation.is-celebrating {
+      box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.15), 0 12px 28px rgba(236, 72, 153, 0.18);
+    }
+
+    .day-card.farewell {
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 38%),
+        linear-gradient(135deg, #fff7ed, #fff1f2 58%, #eff6ff);
+      border-color: #fecdd3;
+    }
+
+    .day-card.farewell:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(251, 113, 133, 0.16);
+    }
+
+    .day-card.farewell.is-celebrating {
+      box-shadow: 0 0 0 2px rgba(251, 113, 133, 0.18), 0 12px 30px rgba(251, 113, 133, 0.2);
+    }
+
+    .farewell-message {
+      color: #881337;
+      border-color: rgba(251, 113, 133, 0.65);
+    }
+
+    .wave-piece {
+      position: absolute;
+      top: 100%;
+      font-size: 18px;
+      opacity: 0;
+      animation: waveFloat 2.6s ease-out forwards;
+      filter: drop-shadow(0 5px 8px rgba(15, 23, 42, 0.18));
+    }
+
+    @keyframes waveFloat {
+      0% { transform: translateY(12px) rotate(0deg) scale(0.85); opacity: 0; }
+      12% { opacity: 1; }
+      50% { transform: translateY(-75px) rotate(12deg) scale(1); opacity: 1; }
+      100% { transform: translateY(-150px) rotate(-14deg) scale(0.92); opacity: 0; }
+    }
+
+    .grad-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 3;
+    }
+
+    .grad-message {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%, -50%) scale(0.92);
+      background: rgba(255, 255, 255, 0.96);
+      color: #7c2d12;
+      border: 1px solid rgba(251, 191, 36, 0.7);
+      border-radius: 14px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      opacity: 0;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+      animation: gradMessage 2.4s ease forwards;
+    }
+
+    @keyframes gradMessage {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+      15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.98); }
+    }
+
+    .confetti-piece,
+    .cap-piece {
+      position: absolute;
+      top: -18px;
+      opacity: 0.95;
+      animation: fallPiece 2.4s ease-in forwards;
+    }
+
+    .confetti-piece {
+      width: 8px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    .cap-piece {
+      width: 18px;
+      height: 10px;
+    }
+
+    .cap-piece::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: #111827;
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    }
+
+    .cap-piece::after {
+      content: "";
+      position: absolute;
+      width: 2px;
+      height: 10px;
+      background: #fbbf24;
+      left: 50%;
+      top: 7px;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    @keyframes fallPiece {
+      0% { transform: translateY(-10px) rotate(0deg); opacity: 0; }
+      15% { opacity: 1; }
+      100% { transform: translateY(150px) rotate(320deg); opacity: 0; }
+    }
+
+
+    /* Final mobile refinement: keep short subject labels clear and centered */
+    .program-table td,
+    .program-table th {
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+
+    .program-table td:not(:first-child) {
+      vertical-align: middle;
+    }
+
+
+    .farewell-modal {
+      width: min(560px, 100%);
+      direction: ltr;
+      text-align: left;
+      background:
+        radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(96, 165, 250, 0.12), transparent 30%),
+        linear-gradient(180deg, #ffffff 0%, #fff7ed 52%, #fff1f2 100%);
+      border: 1px solid rgba(251, 113, 133, 0.32);
+      box-shadow: 0 26px 70px rgba(136, 19, 55, 0.18);
+    }
+
+    .farewell-header {
+      background: linear-gradient(135deg, #fb7185, #f59e0b 58%, #60a5fa);
+      color: white;
+      border: 0;
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 16px 36px rgba(251, 113, 133, 0.2);
+    }
+
+    .farewell-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .farewell-header h2 {
+      margin: 0 0 4px;
+      color: white;
+    }
+
+    .farewell-header p {
+      margin: 0;
+      color: rgba(255,255,255,0.9);
+      font-weight: 700;
+    }
+
+    .farewell-close {
+      background: rgba(255,255,255,0.14);
+      color: white;
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    .farewell-program {
+      display: grid;
+      gap: 14px;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .farewell-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-start;
+    }
+
+    .farewell-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.86);
+      color: #9a3412;
+      border: 1px solid #fdba74;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 10px 20px rgba(249, 115, 22, 0.08);
+    }
+
+    .farewell-card {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,247,237,0.96));
+      border: 1px solid #fed7aa;
+      border-radius: 20px;
+      padding: 18px 18px 16px;
+      overflow: hidden;
+      box-shadow: 0 14px 32px rgba(154, 52, 18, 0.08);
+    }
+
+    .farewell-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 6px;
+      background: linear-gradient(90deg, #fb7185, #f59e0b, #60a5fa, #a78bfa);
+    }
+
+    .farewell-card h3 {
+      margin: 0 0 12px;
+      color: #881337;
+      font-size: 17px;
+    }
+
+    .farewell-program-line {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .farewell-icon {
+      flex: 0 0 auto;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #fff1f2, #ffedd5);
+      border: 1px solid #fecdd3;
+      font-size: 18px;
+    }
+
+    .farewell-line-title {
+      display: block;
+      font-weight: 900;
+      color: #7c2d12;
+      margin-bottom: 4px;
+    }
+
+    .farewell-line-text {
+      color: #7c2d12;
+      line-height: 1.75;
+      font-size: 14px;
+      text-align: justify;
+      text-justify: inter-word;
+    }
+
+    .farewell-message-box {
+      display: grid;
+      gap: 10px;
+      background: linear-gradient(135deg, #eff6ff, #ffffff 48%, #fdf2f8);
+      border: 1px dashed #93c5fd;
+      border-radius: 18px;
+      padding: 13px 14px;
+      color: #1e3a8a;
+      font-size: 14px;
+      line-height: 1.8;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    .farewell-message-toggle {
+      width: fit-content;
+      justify-self: start;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(135deg, #9d174d, #fb7185 55%, #f59e0b);
+      font-weight: 900;
+      box-shadow: 0 12px 24px rgba(157, 23, 77, 0.18);
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .farewell-message-toggle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(157, 23, 77, 0.22);
+    }
+
+    .farewell-message-toggle .toggle-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.22);
+      border: 1px solid rgba(255,255,255,0.34);
+      font-weight: 900;
+    }
+
+    .farewell-message-panel {
+      display: none;
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(191, 219, 254, 0.95);
+      border-radius: 16px;
+      padding: 14px 15px;
+      color: #1e3a8a;
+      line-height: 1.85;
+      box-shadow: 0 12px 28px rgba(30, 58, 138, 0.08);
+      animation: farewellReveal 0.22s ease-out;
+      text-align: justify;
+      text-justify: inter-word;
+    }
+
+    .farewell-message-box.open .farewell-message-panel {
+      display: block;
+    }
+
+    .farewell-message-panel strong {
+      color: #9d174d;
+    }
+
+    @keyframes farewellReveal {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .farewell-footer-note {
+      text-align: center;
+      color: #6b7280;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    @media (max-width: 760px) {
+      header { flex-direction: column; }
+      .toolbar { justify-content: flex-start; }
+      .calendar { min-width: 1085px; }
+      .modal { padding: 16px 12px; border-radius: 22px; }
+      .modal-backdrop { padding: 10px 6px; align-items: flex-start; }
+      .feedback-modal { width: min(100%, 100vw - 12px); }
+      .farewell-modal { width: min(100%, 100vw - 12px); }
+      .table-scroll { margin-left: -2px; margin-right: -2px; }
+      .program-table { font-size: 12px; min-width: 840px; }
+      .program-table th, .program-table td { padding: 9px 8px; line-height: 1.32; }
+      .program-table th { position: static; z-index: auto; transform: none; }
+      .program-table thead { position: relative; z-index: 10; }
+      .student-route-table { min-width: 860px; table-layout: fixed; }
+      .student-route-table th:first-child,
+      .student-route-table td:first-child { width: 110px; min-width: 110px; }
+      .student-route-table th:nth-child(2),
+      .student-route-table td:nth-child(2) { width: 165px; min-width: 165px; }
+      .teacher-table { min-width: 720px; }
+      .teacher-table .appointments { min-width: 440px; }
+      .after-core { min-width: 130px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .program-overview { grid-template-columns: 1fr; }
+      .farewell-badges { justify-content: flex-start; }
+      .farewell-message-toggle { justify-self: stretch; justify-content: center; width: 100%; }
+      .farewell-program-line { gap: 10px; }
+      .exam-item { grid-template-columns: 1fr; }
+      .exam-time { text-align: right; }
+    }
+
+
+    /* Integrated Reading Days Revision Planner */
+    .day-card.revision-enabled {
+      cursor: pointer;
+    }
+
+    .day-card.revision-enabled:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 13px 28px rgba(37, 99, 235, 0.13);
+    }
+
+    .mini-btn.revision-btn {
+      background: linear-gradient(135deg, #dbeafe, #ede9fe);
+      color: #1e3a8a;
+      border: 1px solid #bfdbfe;
+    }
+
+    .revision-modal {
+      width: min(1120px, 100%);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.13), transparent 34%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid rgba(191, 219, 254, 0.75);
+    }
+
+    .revision-header {
+      background: linear-gradient(135deg, #0f172a, #1d4ed8 52%, #7c3aed);
+      color: white;
+      border: 0;
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 16px 36px rgba(29, 78, 216, 0.22);
+    }
+
+    .revision-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 9px;
+      letter-spacing: 0.02em;
+    }
+
+    .revision-header h2,
+    .revision-header p {
+      color: white;
+    }
+
+    .revision-header p {
+      opacity: 0.88;
+      font-weight: 700;
+    }
+
+    .revision-close {
+      background: rgba(255,255,255,0.14);
+      color: white;
+      border-color: rgba(255,255,255,0.32);
+    }
+
+    .revision-tabs,
+    .revision-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      align-items: center;
+      margin: 12px 0 14px;
+    }
+
+    .revision-tab,
+    .revision-tool-btn {
+      border: 1px solid #c7d2fe;
+      border-radius: 999px;
+      padding: 9px 13px;
+      cursor: pointer;
+      font-weight: 900;
+      color: #334155;
+      background: #f8fafc;
+      transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    }
+
+    .revision-tab:hover,
+    .revision-tool-btn:hover { transform: translateY(-1px); }
+
+    .revision-tab.active,
+    .revision-tool-btn.primary {
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      color: white;
+      border-color: transparent;
+    }
+
+    .revision-tool-btn.success {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: white;
+      border-color: transparent;
+    }
+
+    .revision-tool-btn.gold {
+      background: linear-gradient(135deg, #fde68a, #f59e0b);
+      color: #422006;
+      border-color: transparent;
+    }
+
+    .revision-progress-card {
+      background: linear-gradient(135deg, #eef2ff, #ffffff);
+      border: 1px solid #c7d2fe;
+      border-radius: 18px;
+      padding: 13px 14px;
+      margin: 10px 0 14px;
+      box-shadow: 0 10px 24px rgba(79, 70, 229, 0.08);
+    }
+
+    .revision-progress-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: #312e81;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .revision-progress-track {
+      height: 11px;
+      border-radius: 999px;
+      background: #dbeafe;
+      overflow: hidden;
+    }
+
+    .revision-progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      transition: width 0.25s ease;
+    }
+
+    .revision-day-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .revision-stat {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 13px 14px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    .revision-stat strong {
+      display: block;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+
+    .revision-stat span {
+      display: block;
+      color: #475569;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+
+    .revision-prep-card {
+      margin: 12px 0 14px;
+      padding: 14px 15px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #fffbeb, #ffffff 54%, #eff6ff);
+      border: 1px solid #fde68a;
+      color: #78350f;
+      display: grid;
+      gap: 6px;
+      box-shadow: 0 10px 24px rgba(245, 158, 11, 0.10);
+    }
+
+    .revision-prep-card strong {
+      color: #92400e;
+      font-size: 13px;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+    }
+
+    .revision-prep-card span {
+      line-height: 1.55;
+      color: #7c2d12;
+      font-weight: 700;
+    }
+
+    .revision-table-wrap {
+      overflow-x: auto;
+      border: 1px solid #dbeafe;
+      border-radius: 18px;
+      background: white;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .revision-table {
+      width: 100%;
+      min-width: 850px;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+
+    .revision-table th,
+    .revision-table td {
+      border-bottom: 1px solid #e5e7eb;
+      border-right: 1px solid #e5e7eb;
+      padding: 12px 11px;
+      vertical-align: top;
+      text-align: left;
+      line-height: 1.45;
+    }
+
+    .revision-table th {
+      background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+      color: #1e293b;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .revision-table tr:last-child td { border-bottom: 0; }
+    .revision-table td:last-child,
+    .revision-table th:last-child { border-right: 0; }
+
+    .revision-time {
+      width: 170px;
+      white-space: nowrap;
+      font-weight: 950;
+      color: #334155;
+      background: #fcfdff;
+    }
+
+    .revision-pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .revision-pill.study { background: #dbeafe; color: #1d4ed8; }
+    .revision-pill.practice { background: #ede9fe; color: #6d28d9; }
+    .revision-pill.break { background: #fef3c7; color: #b45309; }
+    .revision-pill.review { background: #d1fae5; color: #047857; }
+
+    .revision-note {
+      margin-top: 14px;
+      padding: 14px 15px;
+      border-radius: 17px;
+      background: linear-gradient(135deg, #fff7ed, #fefce8);
+      border: 1px solid #fde68a;
+      color: #78350f;
+      line-height: 1.65;
+      text-align: left;
+    }
+
+    .revision-full-grid {
+      display: grid;
+      gap: 11px;
+      margin-top: 12px;
+    }
+
+    .revision-accordion {
+      border-radius: 18px;
+      overflow: hidden;
+      background: white;
+      border: 1px solid #dbeafe;
+    }
+
+    .revision-accordion > button {
+      width: 100%;
+      border: 0;
+      cursor: pointer;
+      background: linear-gradient(135deg, #f8fafc, #eef2ff);
+      padding: 14px 15px;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 950;
+      color: #0f172a;
+    }
+
+    .revision-accordion > button span:last-child {
+      color: #475569;
+      font-weight: 700;
+      text-align: right;
+      font-size: 13px;
+    }
+
+    .revision-accordion-content { display: none; padding: 14px; }
+    .revision-accordion.open .revision-accordion-content { display: block; }
+
+    .revision-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .revision-mini-card {
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 12px;
+    }
+
+    .revision-mini-card h5 {
+      margin: 0 0 6px;
+      color: #0f172a;
+      font-size: 13px;
+    }
+
+    .revision-mini-card p {
+      margin: 0;
+      color: #475569;
+      line-height: 1.5;
+      font-size: 12px;
+    }
+
+    .revision-hidden { display: none; }
+
+    @media (max-width: 760px) {
+      .revision-modal { width: min(100%, 100vw - 12px); }
+      .revision-day-summary { grid-template-columns: 1fr; }
+      .revision-table { min-width: 760px; }
+      .revision-accordion > button { flex-direction: column; }
+      .revision-accordion > button span:last-child { text-align: left; }
+    }
+
+
+    /* Stability refinement for Android, iPhone, and laptop */
+    .revision-mobile-hint {
+      margin: 8px 0 12px;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 700;
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      body { overflow-x: hidden; }
+      .page { width: min(100% - 16px, 720px); margin: 12px auto; }
+      .title-block { padding: 16px 14px; border-radius: 18px; }
+      .subtitle { text-align: left; text-justify: auto; }
+      .legend { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .legend .light-all-chip { grid-column: 1 / -1; width: 100%; justify-content: center; }
+      .chip { justify-content: center; white-space: normal; text-align: center; }
+      .calendar-wrap { padding: 10px; overflow-x: visible; }
+      .calendar { grid-template-columns: 1fr; min-width: 0; gap: 10px; }
+      .weekday { display: none; }
+      .day-card { min-height: auto; padding: 13px 12px; }
+      .date { white-space: normal; font-size: 14px; }
+      .actions .mini-btn { flex: 1 1 auto; text-align: center; }
+      .modal-backdrop.open { align-items: stretch; justify-content: stretch; padding: 0; }
+      .modal { width: 100%; max-height: 100dvh; min-height: 100dvh; border-radius: 0; padding: 14px 10px; }
+      .modal-header, .revision-header, .farewell-header, .feedback-modal-header { position: sticky; top: 0; z-index: 10; border-radius: 14px; }
+      .revision-tabs, .revision-tools, .branch-tabs { gap: 7px; }
+      .revision-tab, .revision-tool-btn, .tab-btn { flex: 1 1 auto; text-align: center; padding: 10px 9px; }
+      .revision-mobile-hint { display: block; }
+      .revision-table-wrap, .table-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .revision-table { min-width: 720px; }
+      .exam-item { direction: ltr; text-align: left; }
+      .exam-time { text-align: left; }
+    }
+
+
+    /* Artistic main-page copy button, added without changing the schedule content */
+    .main-copy-btn {
+      align-self: flex-start;
+      min-width: 104px;
+      min-height: 46px;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 999px;
+      padding: 10px 15px;
+      cursor: pointer;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.36), transparent 24%),
+        linear-gradient(135deg, #0f172a 0%, #1d4ed8 48%, #7c3aed 100%);
+      box-shadow: 0 12px 26px rgba(29, 78, 216, 0.22);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    }
+
+    .main-copy-btn::before {
+      content: "";
+      position: absolute;
+      inset: -45% auto auto -55%;
+      width: 48%;
+      height: 190%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.62), transparent);
+      transform: rotate(22deg);
+      transition: left 0.55s ease;
+    }
+
+    .main-copy-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 17px 34px rgba(79, 70, 229, 0.28);
+      filter: saturate(1.08);
+    }
+
+    .main-copy-btn:hover::before { left: 125%; }
+
+    .main-copy-btn.copied {
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.36), transparent 24%),
+        linear-gradient(135deg, #047857 0%, #10b981 48%, #22c55e 100%);
+      box-shadow: 0 14px 30px rgba(16, 185, 129, 0.26);
+    }
+
+    .main-copy-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.17);
+      border: 1px solid rgba(255,255,255,0.28);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      line-height: 1;
+      flex: 0 0 24px;
+    }
+
+    .main-copy-label { position: relative; z-index: 1; }
+
+    @media (max-width: 760px) {
+      header { flex-direction: column; }
+      .main-copy-btn {
+        align-self: flex-end;
+        min-width: 96px;
+        min-height: 44px;
+        width: auto;
+        padding: 9px 13px;
+        border-radius: 999px;
+        font-size: 13px;
+      }
+    }
+
+
+
+
+    /* Correction Review & Feedback copy button, added without changing the existing feedback content */
+    .feedback-copy-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin: 2px 0 12px;
+    }
+
+    .feedback-copy-toolbar .main-copy-btn {
+      align-self: auto;
+      min-width: 104px;
+      min-height: 44px;
+      padding: 9px 14px;
+      font-size: 13px;
+      box-shadow: 0 12px 26px rgba(79, 70, 229, 0.21);
+    }
+
+    .feedback-copy-toolbar .main-copy-icon {
+      width: 23px;
+      height: 23px;
+      flex-basis: 23px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 760px) {
+      .feedback-copy-toolbar {
+        justify-content: flex-end;
+        margin: 4px 0 10px;
+      }
+      .feedback-copy-toolbar .main-copy-btn {
+        min-width: 96px;
+        min-height: 42px;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+    }
+
+
+    /* Full revision-plan copy button, added without changing the existing planner content */
+    .revision-copy-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin: 2px 0 12px;
+    }
+
+    .revision-copy-toolbar .main-copy-btn {
+      align-self: auto;
+      min-width: 104px;
+      min-height: 44px;
+      padding: 9px 14px;
+      font-size: 13px;
+      box-shadow: 0 12px 26px rgba(124, 58, 237, 0.21);
+    }
+
+    .revision-copy-toolbar .main-copy-icon {
+      width: 23px;
+      height: 23px;
+      flex-basis: 23px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 760px) {
+      .revision-copy-toolbar {
+        justify-content: flex-end;
+        margin: 4px 0 10px;
+      }
+      .revision-copy-toolbar .main-copy-btn {
+        min-width: 96px;
+        min-height: 42px;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+    }
+
+
+
+    /* Refinement for Revision Plan titles on the main cards and inside the modal */
+    .day-card .status {
+      overflow-wrap: anywhere;
+    }
+
+    .day-card .status.revision-plan-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      max-width: 100%;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #dbeafe, #ede9fe);
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .revision-header .modal-title {
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    @media (max-width: 760px) {
+      .day-card .status.revision-plan-label {
+        width: 100%;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <section class="title-block">
+        <h1>Grade 12 Schedule, 2026</h1>
+        <p class="subtitle">As you enter the final stage of preparation, organize your time, stay committed to your revision plan, and approach each day with calm confidence. Your steady effort, thoughtful questions, and responsible attitude will help you reach the success you have been preparing for.</p>
+        <div class="legend" aria-label="Legend">
+          <button class="chip light-all-chip" id="lightAllBtn" type="button"><span class="dot"></span>Light Up All</button>
+          <button class="chip filter-chip" type="button" data-filter="reading"><span class="dot" style="background: var(--reading)"></span>Reading Day</button>
+          <button class="chip filter-chip" type="button" data-filter="mock"><span class="dot" style="background: var(--exam)"></span>Mock Exam</button>
+          <button class="chip filter-chip" type="button" data-filter="check"><span class="dot" style="background: var(--check)"></span>Check-in</button>
+          <button class="chip filter-chip" type="button" data-filter="correction"><span class="dot" style="background: var(--correction)"></span>Feedback Day</button>
+          <button class="chip filter-chip" type="button" data-filter="graduation"><span class="dot" style="background: var(--graduation)"></span>Graduation Day</button>
+          <button class="chip filter-chip" type="button" data-filter="farewell"><span class="dot" style="background: var(--farewell)"></span>Senior Farewell Day</button>
+          <button class="chip filter-chip" type="button" data-filter="official"><span class="dot" style="background: var(--official)"></span>Official Exams</button>
+        </div>
+      </section>
+      <button class="main-copy-btn" id="mainCopyBtn" type="button" aria-label="Copy main page" title="Copy main page">
+        <span class="main-copy-icon" aria-hidden="true">⧉</span>
+        <span class="main-copy-label">Copy</span>
+      </button>
+    </header>
+
+    <section class="calendar-wrap">
+      <div class="calendar" id="calendar" aria-label="Grade 12 schedule calendar"></div>
+    </section>
+
+    <div class="note-box">
+      As you reach the final stage of preparation, remember that you are not walking this path alone. Your school and subject teachers will remain beside you until the last examination, offering calm encouragement in the morning before you enter the exam room, and helping you face each subject with confidence, focus, and responsibility.
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="officialModal" role="dialog" aria-modal="true" aria-labelledby="officialTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="officialTitle">Official Exams</h2>
+          <p class="subtitle" id="officialDate"></p>
+        </div>
+        <button class="close-btn" onclick="closeModal('officialModal')" aria-label="Close">×</button>
+      </div>
+      <div class="branch-tabs">
+        <button class="tab-btn active" id="lifeTab" onclick="setModalBranch('life')">Life Sciences</button>
+        <button class="tab-btn" id="esTab" onclick="setModalBranch('es')">Economics & Sociology</button>
+      </div>
+      <div class="exam-list" id="examList"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="checkModal" role="dialog" aria-modal="true" aria-labelledby="checkTitle">
+    <div class="modal check-modal">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="checkTitle">Check-in Request</h2>
+          <p class="subtitle">Fill in the card, then copy or share it directly with the concerned teacher.</p>
+        </div>
+        <button class="close-btn" onclick="closeModal('checkModal')" aria-label="Close">×</button>
+      </div>
+
+      <form id="checkForm">
+        <div class="form-grid">
+          <div>
+            <label for="studentName">Student Name</label>
+            <input class="field" id="studentName" type="text" placeholder="Full name" />
+          </div>
+          <div>
+            <label for="studentBranch">Branch</label>
+            <select class="field" id="studentBranch">
+              <option>Life Sciences</option>
+              <option>Economics & Sociology</option>
+              <option>General Sciences</option>
+              <option>Humanities</option>
+            </select>
+          </div>
+          <div>
+            <label for="subject">Subject</label>
+            <input class="field" id="subject" type="text" placeholder="e.g. Math" required />
+          </div>
+          <div>
+            <label for="teacherName">Teacher Name</label>
+            <input class="field" id="teacherName" type="text" placeholder="Teacher's name" required />
+          </div>
+          <div>
+            <label for="visitDay">Preferred Day</label>
+            <select class="field" id="visitDay" required>
+              <option>Monday</option>
+              <option>Tuesday</option>
+              <option>Wednesday</option>
+              <option>Thursday</option>
+              <option>Friday</option>
+            </select>
+          </div>
+          <div>
+            <label for="visitTime">Preferred Time</label>
+            <input class="field" id="visitTime" type="time" min="08:00" max="15:00" step="900" value="08:00" required />
+            <p class="hint">Available only from 8:00 AM to 3:00 PM, Monday to Friday.</p>
+          </div>
+          <div class="full">
+            <label for="questions">Clarification Questions</label>
+            <textarea class="field" id="questions" placeholder="Write the points you would like to clarify."></textarea>
+          </div>
+        </div>
+      </form>
+
+      <div class="preview-card" id="requestPreview"></div>
+
+      <div class="share-row">
+        <button class="share-btn copy" type="button" onclick="copyRequest()">📋 Copy</button>
+        <button class="share-btn native" type="button" onclick="nativeShare()">🔗 Share Card</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="feedbackModal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+    <div class="modal feedback-modal">
+      <div class="modal-header feedback-modal-header">
+        <div class="feedback-title-block">
+          <span class="feedback-kicker">Grade 12 LS & SE</span>
+          <h2 class="modal-title" id="feedbackTitle">Correction & Feedback</h2>
+          <p>Wednesday, June 17, 2026</p>
+        </div>
+        <button class="close-btn feedback-close" onclick="closeModal('feedbackModal')" aria-label="Close">×</button>
+      </div>
+
+
+
+      <div class="feedback-copy-toolbar">
+        <button class="main-copy-btn feedback-copy-btn" id="feedbackCopyBtn" type="button" onclick="copyFeedbackProgram()" aria-label="Copy Correction Review and Feedback program" title="Copy Correction Review and Feedback program">
+          <span class="main-copy-icon" aria-hidden="true">⧉</span>
+          <span class="main-copy-label">Copy</span>
+        </button>
+      </div>
+
+      <div class="feedback-hero">
+        <div>
+          <strong>One clear route, focused stations, and practical feedback.</strong>
+          <span>Move quietly, keep the timing, and leave each station with one concrete step for improvement.</span>
+        </div>
+      </div>
+
+      <div class="program-overview">
+        <div class="program-card"><strong>Arrival</strong><span>Students arrive by 08:20&nbsp;AM</span></div>
+        <div class="program-card"><strong>Rotation Window</strong><span>08:30&nbsp;AM - 12:15&nbsp;PM</span></div>
+        <div class="program-card"><strong>Regular Stations</strong><span>15 minutes per group</span></div>
+        <div class="program-card"><strong>Social St. Block</strong><span>20 min, 3 subjects</span></div>
+      </div>
+
+      <p class="feedback-purpose"><strong>Purpose:</strong> Students review corrected work with subject teachers, identify recurring mistakes, and leave each station with clear improvement steps. Students must follow their assigned route only.</p>
+
+      <h3 class="program-section-title">Student Route by Group</h3>
+      <div class="table-scroll">
+        <table class="program-table student-route-table">
+          <thead>
+            <tr>
+              <th>Group</th><th>Students</th><th>08:30</th><th>08:45</th><th>09:00</th><th>09:15</th><th>09:30</th><th>09:45</th><th>10:00</th><th class="after-core">After Core Rotation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><div class="group-cell"><strong>Group A</strong><span>(12 LS)</span></div></td><td>Luna, Anthony, Mike</td><td>Biology</td><td>Physics</td><td>Chemistry</td><td>Math</td><td>English</td><td>Arabic</td><td>Philosophy</td><td class="after-core">10:15 - 10:35 Social St.</td></tr>
+            <tr><td><div class="group-cell"><strong>Group B</strong><span>(12 LS)</span></div></td><td>Mia, Jessica, Cloe-Noel</td><td>Physics</td><td>Chemistry</td><td>Math</td><td>English</td><td>Arabic</td><td>Philosophy</td><td>Biology</td><td class="after-core">10:35 - 10:55 Social St.</td></tr>
+            <tr><td><div class="group-cell"><strong>Group 1</strong><span>(12 SE)</span></div></td><td>Bechara, Elie, Bachir</td><td>Chemistry</td><td>Math</td><td>English</td><td>Arabic</td><td>Philosophy</td><td>Biology</td><td>Physics</td><td class="after-core">10:15 Sociology<br>10:30 Economics<br>10:55 - 11:15 Social St.</td></tr>
+            <tr><td><div class="group-cell"><strong>Group 2</strong><span>(12 SE)</span></div></td><td>Rami, Cherly, Elena</td><td>Math</td><td>English</td><td>Arabic</td><td>Philosophy</td><td>Biology</td><td>Physics</td><td>Chemistry</td><td class="after-core">10:30 Sociology<br>10:45 Economics<br>11:15 - 11:35 Social St.</td></tr>
+            <tr><td><div class="group-cell"><strong>Group 3</strong><span>(12 SE)</span></div></td><td>Petro, Andrew</td><td>English</td><td>Arabic</td><td>Philosophy</td><td>Biology</td><td>Physics</td><td>Chemistry</td><td>Math</td><td class="after-core">10:45 Sociology<br>11:00 Economics<br>11:35 - 11:55 Social St.</td></tr>
+            <tr><td><div class="group-cell"><strong>Group 4</strong><span>(12 SE)</span></div></td><td>Georgio, Rita</td><td>Arabic</td><td>Philosophy</td><td>Biology</td><td>Physics</td><td>Chemistry</td><td>Math</td><td>English</td><td class="after-core">11:00 Sociology<br>11:15 Economics<br>11:55 - 12:15 Social St.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="program-section-title">Teacher Station Schedule</h3>
+      <div class="table-scroll">
+        <table class="program-table teacher-table">
+          <thead><tr><th>Station</th><th class="appointments">Appointments</th><th class="center-cell note-col">Note</th></tr></thead>
+          <tbody>
+            <tr><td>Biology</td><td class="appointments">08:30: Group A (LS) | 09:00: Group 4 (SE) | 09:15: Group 3 (SE) | 09:30: Group 2 (SE) | 09:45: Group 1 (SE) | 10:00: Group B (LS)</td><td class="center-cell note-col">15 min</td></tr>
+            <tr><td>Physics</td><td class="appointments">08:30: Group B (LS) | 08:45: Group A (LS) | 09:15: Group 4 (SE) | 09:30: Group 3 (SE) | 09:45: Group 2 (SE) | 10:00: Group 1 (SE)</td><td class="center-cell note-col">15 min</td></tr>
+            <tr><td>Chemistry</td><td class="appointments">08:30: Group 1 (SE) | 08:45: Group B (LS) | 09:00: Group A (LS) | 09:30: Group 4 (SE) | 09:45: Group 3 (SE) | 10:00: Group 2 (SE)</td><td class="center-cell note-col">15 min</td></tr>
+            <tr><td>Math</td><td class="appointments">08:30: Group 2 (SE) | 08:45: Group 1 (SE) | 09:00: Group B (LS) | 09:15: Group A (LS) | 09:45: Group 4 (SE) | 10:00: Group 3 (SE)</td><td class="center-cell note-col">15 min</td></tr>
+            <tr><td>English</td><td class="appointments">08:30: Group 3 (SE) | 08:45: Group 2 (SE) | 09:00: Group 1 (SE) | 09:15: Group B (LS) | 09:30: Group A (LS) | 10:00: Group 4 (SE)</td><td class="center-cell note-col">15 min</td></tr>
+            <tr><td>Arabic</td><td class="appointments">08:30: Group 4 (SE) | 08:45: Group 3 (SE) | 09:00: Group 2 (SE) | 09:15: Group 1 (SE) | 09:30: Group B (LS) | 09:45: Group A (LS)</td><td class="center-cell note-col">15 min</td></tr>
+            <tr><td>Philosophy</td><td class="appointments">08:45: Group 4 (SE) | 09:00: Group 3 (SE) | 09:15: Group 2 (SE) | 09:30: Group 1 (SE) | 09:45: Group B (LS) | 10:00: Group A (LS)</td><td class="center-cell note-col">15 min</td></tr>
+            <tr><td>Social St.</td><td class="appointments">10:15 - 10:35: Group A (LS) | 10:35 - 10:55: Group B (LS) | 10:55 - 11:15: Group 1 (SE) | 11:15 - 11:35: Group 2 (SE) | 11:35 - 11:55: Group 3 (SE) | 11:55 - 12:15: Group 4 (SE)</td><td class="center-cell note-col">20 min</td></tr>
+            <tr><td>Sociology</td><td class="appointments">10:15: Group 1 (SE) | 10:30: Group 2 (SE) | 10:45: Group 3 (SE) | 11:00: Group 4 (SE)</td><td class="center-cell note-col">SE only</td></tr>
+            <tr><td>Economics</td><td class="appointments">10:30: Group 1 (SE) | 10:45: Group 2 (SE) | 11:00: Group 3 (SE) | 11:15: Group 4 (SE)</td><td class="center-cell note-col">SE only</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="hint">Teachers should keep each station strictly timed, focus on recurring mistakes, and help students identify clear next steps. Students should bring a pen or notebook and follow their assigned route only.</p>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="farewellModal" role="dialog" aria-modal="true" aria-labelledby="farewellTitle">
+    <div class="modal farewell-modal">
+      <div class="modal-header farewell-header">
+        <div>
+          <span class="farewell-kicker">👋 Senior Farewell Day</span>
+          <h2 class="modal-title" id="farewellTitle">Last School Day, Senior Farewell Day</h2>
+          <p>Monday, May 18, 2026</p>
+        </div>
+        <button class="close-btn farewell-close" onclick="closeModal('farewellModal')" aria-label="Close">×</button>
+      </div>
+
+      <div class="farewell-program">
+        <div class="farewell-badges">
+          <span class="farewell-badge">🕘 12:40 PM</span>
+          <span class="farewell-badge">📍 School Playground</span>
+        </div>
+
+        <div class="farewell-card">
+          <h3>Farewell Program</h3>
+          <div class="farewell-program-line">
+            <span class="farewell-icon">🎓</span>
+            <div>
+              <span class="farewell-line-title">Farewell Gathering</span>
+              <div class="farewell-line-text">On this special day, Grade 12 students will have a meeting with the Principal from <strong>12:00 PM</strong> to <strong>12:30 PM</strong>. They are then invited to gather at <strong>12:40 PM</strong> in the school playground for a warm farewell moment marking the close of their school journey.</div>
+            </div>
+          </div>
+          <div class="farewell-program-line">
+            <span class="farewell-icon">👋</span>
+            <div>
+              <span class="farewell-line-title">A Moment of Gratitude</span>
+              <div class="farewell-line-text">Students will say goodbye to their classmates and teachers, leaving behind every good trace, every meaningful memory, and every kind mark they have written in the life of the school.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="farewell-message-box" id="farewellMessageBox">
+          <button class="farewell-message-toggle" type="button" aria-expanded="false" onclick="toggleFarewellMessage(this)">
+            <span>▶ Play Message of the Day</span>
+            <span class="toggle-dot">+</span>
+          </button>
+          <div class="farewell-message-panel">
+            <strong>Today is not simply an ending.</strong> It is the quiet opening of a wider road. As you leave this place, carry its lessons with humility, its friendships with gratitude, and its values with courage. May every step ahead remind you that your story is still unfolding, full of promise, purpose, and light. You leave a beautiful trace here, and you go forward to create even brighter ones.
+          </div>
+        </div>
+
+        <div class="farewell-footer-note">With gratitude, pride, and hope.</div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="modal-backdrop" id="revisionModal" role="dialog" aria-modal="true" aria-labelledby="revisionTitle">
+    <div class="modal revision-modal">
+      <div class="modal-header revision-header">
+        <div>
+          <span class="revision-kicker">📘 Revision Planner</span>
+          <h2 class="modal-title" id="revisionTitle">Reading Day</h2>
+          <p class="subtitle" id="revisionSubtitle">Choose the branch and follow the daily preparation table.</p>
+        </div>
+        <button class="close-btn revision-close" onclick="closeModal('revisionModal')" aria-label="Close">×</button>
+      </div>
+
+      <div class="revision-tabs">
+        <button class="revision-tab active" id="revLsTab" type="button" onclick="setRevisionBranch('LS')">Life Sciences</button>
+        <button class="revision-tab" id="revSeTab" type="button" onclick="setRevisionBranch('SE')">Sociology & Economics</button>
+      </div>
+
+      <div class="revision-progress-card">
+        <div class="revision-progress-label"><span id="revisionProgressLabel">Progress</span><span id="revisionProgressText">0 of 20</span></div>
+        <div class="revision-progress-track"><div class="revision-progress-fill" id="revisionProgressFill"></div></div>
+      </div>
+
+      <div class="revision-tools">
+        <button class="revision-tool-btn primary" type="button" onclick="showRevisionDailyView()">Daily Plan</button>
+        <button class="revision-tool-btn" type="button" onclick="showRevisionFullPlan()">Full 20-Day Plan</button>
+        <button class="revision-tool-btn" type="button" onclick="revisionPreviousDay()">Previous Day</button>
+        <button class="revision-tool-btn" type="button" onclick="revisionNextDay()">Next Day</button>
+        <button class="revision-tool-btn success" type="button" onclick="markRevisionCompleted()">Mark Completed</button>
+        <button class="revision-tool-btn gold" type="button" onclick="unmarkRevisionCompleted()">Undo</button>
+      </div>
+
+      <section id="revisionDailyView">
+        <div class="revision-day-summary">
+          <div class="revision-stat"><strong>Day Focus</strong><span id="revisionFocusText"></span></div>
+          <div class="revision-stat"><strong>Working Hours</strong><span>8:00 AM to 8:50 PM, with focused blocks, brief recovery moments, dinner, error correction, and tomorrow planning.</span></div>
+          <div class="revision-stat"><strong>Student Method</strong><span>Prioritize the branch core subjects, protect memorization subjects, solve, correct, summarize, and close the day with a clear error log.</span></div>
+        </div>
+
+        <div class="revision-prep-card"><strong>Before 8:00 AM</strong><span id="revisionPrepText">Breakfast, hydration, desk setup, and exact goals for the day.</span></div>
+        <div class="revision-mobile-hint">On phones, swipe the table gently left and right to view all columns.</div>
+        <div class="revision-table-wrap">
+          <table class="revision-table">
+            <thead><tr><th>Time</th><th>Session Type</th><th>Task</th></tr></thead>
+            <tbody id="revisionDailyTable"></tbody>
+          </table>
+        </div>
+        <div class="revision-note" id="revisionDayNote"></div>
+      </section>
+
+      <section id="revisionFullView" class="revision-hidden">
+
+        <div class="revision-copy-toolbar">
+          <button class="main-copy-btn revision-full-copy-btn" id="revisionFullCopyBtn" type="button" onclick="copyRevisionFullPlan()" aria-label="Copy full 20-day plan" title="Copy full 20-day plan">
+            <span class="main-copy-icon" aria-hidden="true">⧉</span>
+            <span class="main-copy-label">Copy</span>
+          </button>
+        </div>
+        <div class="revision-note"><strong>Full Plan:</strong> Open any day below to view its main study blocks, or return to the daily table using the Daily Plan button.</div>
+        <div class="revision-full-grid" id="revisionFullGrid"></div>
+      </section>
+    </div>
+  </div>
+
+<div class="toast" id="toast">Copied</div>
+
+  <script>
+    const officialExams = {
+      "2026-06-29": {
+        display: "Monday, June 29, 2026",
+        life: [
+          { time: "8:30 - 9:30", subject: "Geography / جغرافيا" },
+          { time: "9:50 - 12:50", subject: "Biology / علوم الحياة" }
+        ],
+        es: [
+          { time: "8:30 - 9:30", subject: "Geography / جغرافيا" },
+          { time: "9:50 - 11:50", subject: "Math / رياضيات" },
+          { time: "12:10 - 13:10", subject: "Physics / فيزياء" }
+        ]
+      },
+      "2026-07-01": {
+        display: "Wednesday, July 1, 2026",
+        life: [
+          { time: "8:30 - 9:30", subject: "History / تاريخ" },
+          { time: "9:50 - 11:50", subject: "Physics / فيزياء" }
+        ],
+        es: [
+          { time: "8:30 - 9:30", subject: "History / تاريخ" },
+          { time: "9:50 - 12:50", subject: "Economics / اقتصاد" }
+        ]
+      },
+      "2026-07-02": {
+        display: "Thursday, July 2, 2026",
+        life: [
+          { time: "8:30 - 10:30", subject: "Philosophy & Civilizations / فلسفة وحضارات" },
+          { time: "10:50 - 13:20", subject: "Foreign Language & Literature / اللغة الأجنبية وآدابها" }
+        ],
+        es: [
+          { time: "8:30 - 9:30", subject: "Biology / علوم الحياة" },
+          { time: "9:50 - 10:50", subject: "Chemistry / كيمياء" },
+          { time: "11:10 - 13:40", subject: "Foreign Language & Literature / اللغة الأجنبية وآدابها" }
+        ]
+      },
+      "2026-07-04": {
+        display: "Saturday, July 4, 2026",
+        life: [
+          { time: "8:30 - 9:30", subject: "Civics / تربية" },
+          { time: "9:50 - 11:50", subject: "Chemistry / كيمياء" }
+        ],
+        es: [
+          { time: "8:30 - 9:30", subject: "Civics / تربية" },
+          { time: "9:50 - 12:50", subject: "Sociology / اجتماع" }
+        ]
+      },
+      "2026-07-06": {
+        display: "Monday, July 6, 2026",
+        life: [
+          { time: "8:30 - 11:00", subject: "Arabic Language & Literature / اللغة العربية وآدابها" },
+          { time: "11:20 - 13:20", subject: "Math / رياضيات" }
+        ],
+        es: [
+          { time: "8:30 - 10:30", subject: "Philosophy & Civilizations / فلسفة وحضارات" },
+          { time: "10:50 - 13:20", subject: "Arabic Language & Literature / اللغة العربية وآدابها" }
+        ]
+      }
+    };
+
+    const mockExamLinks = {
+      "2026-06-08": "2026-06-29",
+      "2026-06-10": "2026-07-01",
+      "2026-06-11": "2026-07-02",
+      "2026-06-13": "2026-07-04",
+      "2026-06-15": "2026-07-06"
+    };
+
+    const mockExamDisplays = {
+      "2026-06-08": "Monday, June 8, 2026",
+      "2026-06-10": "Wednesday, June 10, 2026",
+      "2026-06-11": "Thursday, June 11, 2026",
+      "2026-06-13": "Saturday, June 13, 2026",
+      "2026-06-15": "Monday, June 15, 2026"
+    };
+
+    const mockProctoring = {
+      "2026-06-08": {
+        life: [
+          "Sona 8:30 - 8:50 | Rony 8:50 - 9:30",
+          "Nour 9:50 - 11:00 | Rony 11:00 - 11:50 | Nour 11:50 - 12:50"
+        ],
+        es: [
+          "Rony 8:30 - 8:50 | Laure 8:50 - 9:30",
+          "Laure 9:50 - 11:00 | Taleen 11:00 - 11:50",
+          "Taleen 12:10 - 13:10"
+        ]
+      },
+      "2026-06-10": {
+        life: [
+          "Rony 8:30 - 8:50 | Remie 8:50 - 9:30",
+          "Jack 9:50 - 11:00 | Aurore 11:00 - 11:50"
+        ],
+        es: [
+          "Taleen 8:30 - 8:50 | Rony 8:50 - 9:30",
+          "Jack 9:50 - 11:00 | Aurore 11:00 - 11:50 | Rony 11:50 - 12:50"
+        ]
+      },
+      "2026-06-11": {
+        life: [
+          "Jack 8:30 - 8:50 | Aurore 8:50 - 9:40 | Jirayr 9:40 - 10:30",
+          "Jirayr 10:50 - 11:00 | Sona 11:00 - 11:50 | Nour 11:50 - 13:20"
+        ],
+        es: [
+          "Aurore 8:30 - 8:50 | Rony 8:50 - 9:30",
+          "Johnny 9:50 - 10:50",
+          "Johnny 11:10 - 13:40"
+        ]
+      },
+      "2026-06-13": {
+        life: [
+          "Johnny and Neshan",
+          "Johnny and Neshan"
+        ],
+        es: [
+          "Johnny and Neshan",
+          "Johnny and Neshan"
+        ]
+      },
+      "2026-06-15": {
+        life: [
+          "Sona 8:30 - 8:50 | Rony 8:50 - 9:40 | Nour 9:40 - 11:00",
+          "Rony 11:20 - 11:50 | Nour 11:50 - 13:20"
+        ],
+        es: [
+          "Rony 8:30 - 8:50 | Laure 8:50 - 10:30",
+          "Laure 10:50 - 11:00 | Taleen 11:00 - 13:20"
+        ]
+      }
+    };
+
+    function attachMockProctors(mockDate, branch, exams) {
+      return exams.map((exam, index) => ({
+        ...exam,
+        proctors: mockProctoring[mockDate]?.[branch]?.[index] || ""
+      }));
+    }
+
+    const mockExams = Object.fromEntries(
+      Object.entries(mockExamLinks).map(([mockDate, officialDate]) => [
+        mockDate,
+        {
+          display: mockExamDisplays[mockDate],
+          life: attachMockProctors(mockDate, "life", officialExams[officialDate].life),
+          es: attachMockProctors(mockDate, "es", officialExams[officialDate].es)
+        }
+      ])
+    );
+
+    const schedule = [
+      { date: "2026-05-18", label: "Monday, May 18", status: "Last School Day · Senior Farewell Day", type: "farewell" },
+      { date: "2026-05-19", label: "Tuesday, May 19", status: "Reading Day 1", type: "reading" },
+      { date: "2026-05-20", label: "Wednesday, May 20", status: "Reading Day 2", type: "reading" },
+      { date: "2026-05-21", label: "Thursday, May 21", status: "Reading Day 3", type: "reading" },
+      { date: "2026-05-22", label: "Friday, May 22", status: "Reading Day 4", type: "reading" },
+      { date: "2026-05-23", label: "Saturday, May 23", status: "Reading Day 5", type: "reading" },
+      { date: "2026-05-24", label: "Sunday, May 24", status: "Reading Day 6", type: "reading" },
+      { date: "2026-05-25", label: "Monday, May 25", status: "Reading Day 7", type: "reading" },
+      { date: "2026-05-26", label: "Tuesday, May 26", status: "Reading Day 8", type: "reading" },
+      { date: "2026-05-27", label: "Wednesday, May 27", status: "Reading Day 9", type: "reading" },
+      { date: "2026-05-28", label: "Thursday, May 28", status: "Reading Day 10", type: "reading" },
+      { date: "2026-05-29", label: "Friday, May 29", status: "Reading Day 11", type: "reading" },
+      { date: "2026-05-30", label: "Saturday, May 30", status: "Reading Day 12", type: "reading" },
+      { date: "2026-05-31", label: "Sunday, May 31", status: "Reading Day 13", type: "reading" },
+      { date: "2026-06-01", label: "Monday, June 1", status: "Reading Day 14 · Check-in by appointment", type: "check" },
+      { date: "2026-06-02", label: "Tuesday, June 2", status: "Reading Day 15 · Check-in by appointment", type: "check" },
+      { date: "2026-06-03", label: "Wednesday, June 3", status: "Reading Day 16", type: "reading" },
+      { date: "2026-06-04", label: "Thursday, June 4", status: "Reading Day 17", type: "reading" },
+      { date: "2026-06-05", label: "Friday, June 5", status: "Reading Day 18", type: "reading" },
+      { date: "2026-06-06", label: "Saturday, June 6", status: "Reading Day 19", type: "reading" },
+      { date: "2026-06-07", label: "Sunday, June 7", status: "Reading Day 20", type: "reading" },
+      { date: "2026-06-08", label: "Monday, June 8", status: "Mock Exam", type: "mock" },
+      { date: "2026-06-09", label: "Tuesday, June 9", status: "Reading Day 21", type: "reading" },
+      { date: "2026-06-10", label: "Wednesday, June 10", status: "Mock Exam", type: "mock" },
+      { date: "2026-06-11", label: "Thursday, June 11", status: "Mock Exam", type: "mock" },
+      { date: "2026-06-12", label: "Friday, June 12", status: "Reading Day 22", type: "reading" },
+      { date: "2026-06-13", label: "Saturday, June 13", status: "Mock Exam", type: "mock" },
+      { date: "2026-06-14", label: "Sunday, June 14", status: "Reading Day 23", type: "reading" },
+      { date: "2026-06-15", label: "Monday, June 15", status: "Mock Exam", type: "mock" },
+      { date: "2026-06-16", label: "Tuesday, June 16", status: "Reading Day 1", type: "reading" },
+      { date: "2026-06-17", label: "Wednesday, June 17", status: "Correction & Feedback", type: "correction" },
+      { date: "2026-06-18", label: "Thursday, June 18", status: "Reading Day 2", type: "reading" },
+      { date: "2026-06-19", label: "Friday, June 19", status: "Reading Day 3", type: "reading" },
+      { date: "2026-06-20", label: "Saturday, June 20", status: "Reading Day 4", type: "reading" },
+      { date: "2026-06-21", label: "Sunday, June 21", status: "Reading Day 5", type: "reading" },
+      { date: "2026-06-22", label: "Monday, June 22", status: "Reading Day 6", type: "reading" },
+      { date: "2026-06-23", label: "Tuesday, June 23", status: "Graduation Day", type: "graduation" },
+      { date: "2026-06-24", label: "Wednesday, June 24", status: "Reading Day 7", type: "reading" },
+      { date: "2026-06-25", label: "Thursday, June 25", status: "Reading Day 8", type: "reading" },
+      { date: "2026-06-26", label: "Friday, June 26", status: "Reading Day 9", type: "reading" },
+      { date: "2026-06-27", label: "Saturday, June 27", status: "Reading Day 10", type: "reading" },
+      { date: "2026-06-28", label: "Sunday, June 28", status: "Reading Day 11", type: "reading" },
+      { date: "2026-06-29", label: "Monday, June 29", status: "First Official Exam Day", type: "official" },
+      { date: "2026-06-30", label: "Tuesday, June 30", status: "Preparation Day", type: "reading" },
+      { date: "2026-07-01", label: "Wednesday, July 1", status: "Official Exams", type: "official" },
+      { date: "2026-07-02", label: "Thursday, July 2", status: "Official Exams", type: "official" },
+      { date: "2026-07-03", label: "Friday, July 3", status: "Preparation Day", type: "reading" },
+      { date: "2026-07-04", label: "Saturday, July 4", status: "Official Exams", type: "official" },
+      { date: "2026-07-05", label: "Sunday, July 5", status: "Reading / Preparation", type: "reading" },
+      { date: "2026-07-06", label: "Monday, July 6", status: "Last Official Exam Day", type: "official" }
+    ];
+
+    const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    let activeExamDate = null;
+    let activeExamSource = officialExams;
+    let activeBranch = "life";
+
+
+
+    const revisionData = {"LS":[{"day":1,"focus":"Core coverage 1: Biology genetics, functions, kinetics, and mechanics.","note":"Begin the first cycle with the highest-weight LS material and one clean error log.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: reproduction, meiosis, gametogenesis, fertilization, and chromosome behavior.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: functions, limits, graph reading, and representative exercises.","Application checkpoint: correct two Biology diagrams and two Math exercises.","Lunch and a short reset, no long phone scrolling.","Chemistry: kinetics, reaction rate, factors affecting rate, and graph interpretation.","History: timeline, causes, consequences, and one structured short answer.","Short movement, hydration, and breathing reset.","Physics: work, energy, mechanical energy, and conservation problems.","Arabic: reading comprehension, evidence extraction, and one precise answer.","Philosophy: build one concept card with definition, argument, and example.","Dinner and mental reset.","Social Studies recall: 10 minutes History, 10 minutes Geography, 10 minutes Civics, then correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":2,"focus":"Core coverage 2: Genetic transmission, derivatives, pH, and momentum.","note":"Move from recognition to problem-solving by correcting each exercise immediately.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: genes, alleles, monohybrid/dihybrid transmission, and pedigree reading.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: derivatives, tangent, variation table, and applications.","Application checkpoint: one genetics problem and one derivative problem under time.","Lunch and a short reset, no long phone scrolling.","Chemistry: acid-base basics, pH, equivalence, and titration vocabulary.","Geography: maps, graphs, economic/climatic data, and short-answer method.","Short movement, hydration, and breathing reset.","Physics: linear momentum, impulse, collisions, and conservation reasoning.","Foreign Language: text comprehension, vocabulary, and written response tools.","Philosophy: one thesis, two arguments, and one example from the required themes.","Dinner and mental reset.","Social Studies recall: geography terms, map-reading steps, and quick correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":3,"focus":"Core coverage 3: Immunity introduction, integration, equilibrium, and oscillations.","note":"Use diagrams and formulas, then test memory without the book.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: self and non-self, HLA, immune cells, lymphoid organs, and immunocompetence.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: integration basics, primitives, area meaning, and standard exercises.","Application checkpoint: draw an immunity map and solve two integration tasks.","Lunch and a short reset, no long phone scrolling.","Chemistry: chemical equilibrium, Kc, Le Chatelier principle, and interpretation.","Civics: state, citizenship, institutions, rights, duties, and precise definitions.","Short movement, hydration, and breathing reset.","Physics: mechanical oscillations, period, frequency, and energy changes.","Arabic: grammar accuracy and expression paragraph with clear structure.","Philosophy: man and knowledge, concept links, and short essay skeleton.","Dinner and mental reset.","Social Studies recall: Civics definitions and one application to a real situation.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":4,"focus":"Core coverage 4: Specific immunity, probability, organic chemistry, and induction.","note":"Protect accuracy in scientific vocabulary and mathematical steps.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: nonspecific and specific immunity, antibodies, antigens, and immune memory.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: probability, conditional probability, random variables, and statistics link.","Application checkpoint: one immune response sequence and one probability exercise.","Lunch and a short reset, no long phone scrolling.","Chemistry: organic functional groups, alcohols, aldehydes, ketones, and acids.","History: key dates, leaders, turning points, and one paragraph with evidence.","Short movement, hydration, and breathing reset.","Physics: electromagnetic induction, magnetic flux, induced current, and Lenz law.","Foreign Language: grammar and written production with connector bank.","Philosophy: ethics theme, problem statement, argument, and example.","Dinner and mental reset.","Social Studies recall: History timeline and cause-effect relationships.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":5,"focus":"Core coverage 5: Human genetics, statistics, acids-bases, and capacitors.","note":"Combine memorization with exam-style exercises.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: human genetics, pedigree analysis, autosomal/gonosomal transmission, and diagnosis.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: statistics, mean, variance, standard deviation, and data interpretation.","Application checkpoint: one pedigree, one statistics table, and immediate correction.","Lunch and a short reset, no long phone scrolling.","Chemistry: weak acid, weak base, conjugate pairs, buffer idea, and pH reasoning.","Geography: document analysis, map location, justification, and concise conclusion.","Short movement, hydration, and breathing reset.","Physics: capacitors, charging/discharging, time constant, and graph reading.","Arabic: literary devices and text-based evidence in complete answers.","Philosophy: compare two concepts and prepare one clear example.","Dinner and mental reset.","Social Studies recall: Geography data interpretation and key terms.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":6,"focus":"Core coverage 6: Bioethics, complex numbers, equilibrium, and waves.","note":"Repair weak points before they accumulate.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: chromosomal mutations, prenatal diagnosis, biotechnology, and bioethics.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: complex numbers or weakest algebra chapter with applications.","Application checkpoint: correct two weak exercises from Biology and Math.","Lunch and a short reset, no long phone scrolling.","Chemistry: equilibrium shifts, industrial examples, and representative questions.","Civics: constitution, public authority, elections, and citizenship values.","Short movement, hydration, and breathing reset.","Physics: waves, diffraction, interference, and qualitative explanations.","Foreign Language: comprehension questions and short writing practice.","Philosophy: prepare definitions and argument banks from two lessons.","Dinner and mental reset.","Social Studies recall: Civics institutions and responsibilities.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":7,"focus":"Core coverage 7: Biology systems, calculus fluency, chemistry synthesis, and optics.","note":"Use active recall before opening summaries.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: regulation, communication, and integration of major body systems.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: mixed calculus practice from functions, limits, derivatives, and integrals.","Application checkpoint: timed mixed set with correction and error classification.","Lunch and a short reset, no long phone scrolling.","Chemistry: organic reaction patterns, identification tests, and synthesis logic.","History, Geography, Civics: quick rotation with recall cards and one written answer.","Short movement, hydration, and breathing reset.","Physics: optics or modern physics weak chapter through corrected exercises.","Arabic: expression plan and paragraph cohesion.","Philosophy: one full introduction and one conclusion from memory.","Dinner and mental reset.","Social Studies recall: mixed 30-minute quiz across the three subjects.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":8,"focus":"Core coverage 8: Biology experimental skills and science problem-solving.","note":"Turn knowledge into exam answers: observe, justify, calculate, conclude.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: experiments, graphs, tables, interpretation, and conclusion writing.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: official-style mixed exercises with clear presentation.","Application checkpoint: one Biology document question and one Math official exercise.","Lunch and a short reset, no long phone scrolling.","Chemistry: quantitative questions, stoichiometry links, and equilibrium calculations.","History: thematic review and one timed structured answer.","Short movement, hydration, and breathing reset.","Physics: electricity or electromagnetism problem set with correction.","Foreign Language: vocabulary, grammar, and one written response.","Philosophy: argument development and examples linked to likely questions.","Dinner and mental reset.","Social Studies recall: History thematic sheet and fast correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":9,"focus":"Core coverage 9: Biology synthesis, mathematics accuracy, and chemistry precision.","note":"Keep the answer method visible: data, concept, reasoning, final answer.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: genetics and immunity synthesis with diagrams and official-style questions.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: statistics, probability, and mixed applications.","Application checkpoint: mark each answer using steps, units, and justification.","Lunch and a short reset, no long phone scrolling.","Chemistry: pH, titration, equilibrium, and kinetic mixed practice.","Geography: maps, charts, economic data, and answer structure.","Short movement, hydration, and breathing reset.","Physics: modern physics or weakest chapter, formulas, and conceptual explanations.","Arabic: comprehension and language accuracy.","Philosophy: concept map across required themes.","Dinner and mental reset.","Social Studies recall: Geography mini-test and correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":10,"focus":"Core coverage 10: Official-style LS simulation blocks.","note":"Study with timing discipline, not only content review.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: timed section from genetics, immunity, and physiology with correction.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: timed mixed section from main chapters.","Application checkpoint: estimate marks and rewrite two weak answers.","Lunch and a short reset, no long phone scrolling.","Chemistry: timed exercise set with pH, kinetics, equilibrium, and organic chemistry.","Civics: definitions and application paragraph.","Short movement, hydration, and breathing reset.","Physics: timed problem set and formula recall.","Foreign Language: comprehension and written production.","Philosophy: two essay plans and one paragraph from memory.","Dinner and mental reset.","Social Studies recall: Civics quick test and answer improvement.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":11,"focus":"Core coverage 11: Biology, Geography, and first official exam readiness.","note":"Align the work with the first official-exam style.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: high-yield chapters, diagrams, experimental questions, and correction.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: maintenance exercises only, focused on weak points.","Application checkpoint: Biology mini-mock and final error list.","Lunch and a short reset, no long phone scrolling.","Chemistry: formulas and representative exercises.","Geography: full method for map, graph, document, and short-answer questions.","Short movement, hydration, and breathing reset.","Physics: formula sheet and one corrected representative problem.","Arabic: reading method and evidence-based answers.","Philosophy: concise concept recall without overload.","Dinner and mental reset.","Social Studies recall: Geography final summary and timed questions.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":12,"focus":"Core coverage 12: History, Physics, and scientific reasoning.","note":"Strengthen subjects appearing in the middle of the official sequence.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: light recall from genetics and immunity to protect memory.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: mixed review from the error log.","Application checkpoint: two Physics exercises and one History answer corrected.","Lunch and a short reset, no long phone scrolling.","Chemistry: targeted weak chapter review.","History: key timelines, causes, consequences, and complete answer method.","Short movement, hydration, and breathing reset.","Physics: official-style problems, units, graphs, and explanation quality.","Foreign Language: grammar and comprehension accuracy.","Philosophy: key themes and example bank.","Dinner and mental reset.","Social Studies recall: History timeline from memory.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":13,"focus":"Core coverage 13: Philosophy, Foreign Language, and answer quality.","note":"Language subjects need structure, clarity, and evidence.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: concise diagram recall and weak-point repair.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: formulas and representative exercises.","Application checkpoint: one philosophy plan and one foreign-language answer.","Lunch and a short reset, no long phone scrolling.","Chemistry: pH and organic chemistry quick practice.","History, Geography, Civics: compact memory rotation.","Short movement, hydration, and breathing reset.","Physics: conceptual explanation practice.","Foreign Language: text analysis, vocabulary, and written production.","Philosophy: full essay method, introduction, arguments, examples, and conclusion.","Dinner and mental reset.","Social Studies recall: mixed memory sheet and correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":14,"focus":"Core coverage 14: Chemistry, Civics, and final science maintenance.","note":"Use the day to complete unresolved science and civic concepts.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: two representative official-style questions.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: weak-point correction and formula sheet.","Application checkpoint: chemistry exercises and Civics short answers corrected.","Lunch and a short reset, no long phone scrolling.","Chemistry: kinetics, equilibrium, acids-bases, and organic chemistry synthesis.","Civics: institutions, citizenship, rights, duties, and precise wording.","Short movement, hydration, and breathing reset.","Physics: final formula practice and conceptual questions.","Arabic: language accuracy and writing connectors.","Philosophy: final definitions and examples.","Dinner and mental reset.","Social Studies recall: Civics definitions and application.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":15,"focus":"Core coverage 15: Arabic, Mathematics, and whole-program closure.","note":"Close the first revision cycle with calm correction and organized summaries.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: final high-yield recall and one weak diagram.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: timed mixed official-style section.","Application checkpoint: Arabic answer + Math set correction.","Lunch and a short reset, no long phone scrolling.","Chemistry: last unresolved formulas and common mistakes.","History, Geography, Civics: balanced compact review.","Short movement, hydration, and breathing reset.","Physics: formula sheet and one representative exercise.","Arabic: literature, comprehension, writing, and language accuracy.","Philosophy: one final essay skeleton.","Dinner and mental reset.","Social Studies recall: final mixed quiz and correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":16,"focus":"Second revision 1: Geography and Biology mock readiness.","note":"Start the second cycle. Revise what will appear first in the mock and official sequence.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: mock-style Biology, diagrams, experiments, and correction.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: light maintenance from error log.","Application checkpoint: Biology mini-mock and mark estimation.","Lunch and a short reset, no long phone scrolling.","Chemistry: quick formulas and weak reactions.","Geography: final maps, charts, documents, and concise answers.","Short movement, hydration, and breathing reset.","Physics: light mechanics or electricity recall.","Arabic: concise comprehension practice.","Philosophy: light concept recall.","Dinner and mental reset.","Social Studies recall: Geography one-page active recall.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":17,"focus":"Second revision 2: History and Physics mock readiness.","note":"Focus on timing and presentation for the next mock subjects.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: 45-minute recall from previous errors.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: formulas and two representative exercises.","Application checkpoint: Physics exercises corrected step by step.","Lunch and a short reset, no long phone scrolling.","Chemistry: short pH or equilibrium set.","History: final timeline, turning points, and answer structure.","Short movement, hydration, and breathing reset.","Physics: timed mock-style section and correction.","Foreign Language: brief vocabulary and grammar review.","Philosophy: one plan from memory.","Dinner and mental reset.","Social Studies recall: History oral recall and written check.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":18,"focus":"Second revision 3: Philosophy and Foreign Language mock readiness.","note":"Reduce overload and strengthen written answers.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: light recall cards only.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: targeted weak exercise.","Application checkpoint: one philosophy answer and one language production corrected.","Lunch and a short reset, no long phone scrolling.","Chemistry: quick formula and vocabulary review.","History, Geography, Civics: 30-minute maintenance rotation.","Short movement, hydration, and breathing reset.","Physics: light formula recall.","Foreign Language: full text method, vocabulary, grammar, and writing.","Philosophy: high-yield concepts, arguments, and examples.","Dinner and mental reset.","Social Studies recall: mixed flashcards only.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":19,"focus":"Second revision 4: Civics and Chemistry mock readiness.","note":"Concentrate on precision, definitions, formulas, and common mistakes.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: weak-point repair from the Biology mock preparation.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: light formula sheet review.","Application checkpoint: Chemistry timed set and Civics short answers.","Lunch and a short reset, no long phone scrolling.","Chemistry: full high-yield recap from kinetics, equilibrium, acids-bases, and organic chemistry.","Civics: final definitions, institutions, values, and application questions.","Short movement, hydration, and breathing reset.","Physics: light conceptual recall.","Arabic: language accuracy and expression tools.","Philosophy: short final concept review.","Dinner and mental reset.","Social Studies recall: Civics one-page active recall.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":20,"focus":"Second revision 5: Arabic and Mathematics final mock readiness.","note":"Finish the pre-mock cycle with clarity, materials ready, and no exhaustion.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Biology: 30-minute diagram recall and stop.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Mathematics: final formulas, common methods, and timed mixed practice.","Application checkpoint: correct the Math set and list last mistakes.","Lunch and a short reset, no long phone scrolling.","Chemistry: short recall only, no overload.","History, Geography, Civics: very light maintenance.","Short movement, hydration, and breathing reset.","Physics: formula sheet and one easy confidence exercise.","Arabic: final reading method, writing plan, language accuracy, and literary terms.","Philosophy: light concept cards only.","Dinner and mental reset.","Social Studies recall: gentle recall, then prepare exam-day materials.","Error log, active recall, tomorrow planning, and organization of materials."]}],"SE":[{"day":1,"focus":"Core coverage 1: Sociology foundations, Economics basics, and document method.","note":"Build definitions, examples, and one common error log from the first day.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: society, social facts, institutions, socialization, and examples.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: needs, scarcity, production, consumption, and basic vocabulary.","Application checkpoint: one Sociology document question and one Economics definition task.","Lunch and a short reset, no long phone scrolling.","Mathematics: functions and graph reading connected to economic applications.","History: timeline, causes, consequences, and one structured short answer.","Short movement, hydration, and breathing reset.","Scientific Literacy: basic Biology concepts, diagrams, and key terms.","Arabic: comprehension and evidence-based answers.","Philosophy: one concept card with definition, argument, and example.","Dinner and mental reset.","Social Studies recall: 10 minutes History, 10 minutes Geography, 10 minutes Civics, then correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":2,"focus":"Core coverage 2: Socialization, market concepts, and mathematical tools.","note":"Use examples from society and economy, then write complete answers.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: norms, values, roles, status, groups, and socialization agents.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: market, demand, supply, prices, and graph interpretation.","Application checkpoint: one Sociology paragraph and one market graph question.","Lunch and a short reset, no long phone scrolling.","Mathematics: derivatives and variation tables for applications.","Geography: maps, graphs, economic/climatic data, and short-answer method.","Short movement, hydration, and breathing reset.","Scientific Literacy: Physics concepts and formulas required for SE.","Foreign Language: text comprehension, vocabulary, and written response tools.","Philosophy: one thesis, two arguments, and one example.","Dinner and mental reset.","Social Studies recall: Geography terms and document method.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":3,"focus":"Core coverage 3: Social change, economic indicators, and probability/statistics.","note":"Keep the vocabulary precise and the calculations clean.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: social change, culture, conflict, cooperation, and institutions.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: growth, development, GDP, inflation, unemployment, and indicators.","Application checkpoint: indicators table and a Sociology written answer.","Lunch and a short reset, no long phone scrolling.","Mathematics: statistics, probability, mean, variance, and interpretation.","Civics: state, citizenship, rights, duties, and institutions.","Short movement, hydration, and breathing reset.","Scientific Literacy: Chemistry key notions and applications.","Arabic: grammar accuracy and expression paragraph.","Philosophy: man and knowledge, concept links, and essay skeleton.","Dinner and mental reset.","Social Studies recall: Civics definitions and one application.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":4,"focus":"Core coverage 4: Family, education, production, and functions.","note":"Connect concepts to concrete examples and official-style documents.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: family, education, social mobility, and inequality.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: production factors, productivity, costs, revenue, and enterprise.","Application checkpoint: one Sociology document and one production exercise.","Lunch and a short reset, no long phone scrolling.","Mathematics: functions, limits, and economic interpretation.","History: key dates, leaders, turning points, and cause-effect answers.","Short movement, hydration, and breathing reset.","Scientific Literacy: Biology/Chemistry weak terms and diagrams.","Foreign Language: grammar and written production with connectors.","Philosophy: ethics theme, problem statement, argument, and example.","Dinner and mental reset.","Social Studies recall: History timeline and written correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":5,"focus":"Core coverage 5: Work, unemployment, policy, and statistics.","note":"Balance memorization, interpretation, and numerical practice.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: work, unemployment, poverty, social problems, and policy responses.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: public policy, fiscal/monetary ideas, and development challenges.","Application checkpoint: unemployment document and one economics policy answer.","Lunch and a short reset, no long phone scrolling.","Mathematics: statistics and probability exercises linked to social data.","Geography: document analysis, map location, and concise justification.","Short movement, hydration, and breathing reset.","Scientific Literacy: Physics formulas and simple applications.","Arabic: literary devices and complete answers.","Philosophy: compare two ideas using examples.","Dinner and mental reset.","Social Studies recall: Geography data interpretation and key terms.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":6,"focus":"Core coverage 6: Institutions, macroeconomics, and written accuracy.","note":"Definitions must be linked to examples and document evidence.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: institutions, social control, deviance, and integration.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: national income, balance, trade, and economic policy vocabulary.","Application checkpoint: one Sociology answer and one Economics graph/table task.","Lunch and a short reset, no long phone scrolling.","Mathematics: derivatives/statistics weak-point repair.","Civics: constitution, public authority, elections, and citizenship values.","Short movement, hydration, and breathing reset.","Scientific Literacy: Chemistry or Biology representative questions.","Foreign Language: comprehension and short writing practice.","Philosophy: definitions and argument bank from two lessons.","Dinner and mental reset.","Social Studies recall: Civics institutions and responsibilities.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":7,"focus":"Core coverage 7: Method day for Sociology and Economics documents.","note":"Train the official answer method: identify, explain, support, conclude.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: document analysis method, concept identification, and evidence use.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: graphs, tables, indicators, and policy interpretation.","Application checkpoint: timed document question in both branch subjects.","Lunch and a short reset, no long phone scrolling.","Mathematics: mixed economic application exercises.","History, Geography, Civics: quick rotation with recall cards and one answer.","Short movement, hydration, and breathing reset.","Scientific Literacy: diagrams, key terms, and corrected questions.","Arabic: expression plan and paragraph cohesion.","Philosophy: introduction and conclusion from memory.","Dinner and mental reset.","Social Studies recall: mixed 30-minute quiz across the three subjects.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":8,"focus":"Core coverage 8: Sociology theories, Economics mechanisms, and Math practice.","note":"Move from summaries to answer production.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: theories, concepts, examples, and one structured paragraph.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: demand/supply, market equilibrium, policy measures, and examples.","Application checkpoint: correct one Sociology answer and one Economics exercise.","Lunch and a short reset, no long phone scrolling.","Mathematics: functions, statistics, and probability practice.","History: thematic review and one timed structured answer.","Short movement, hydration, and breathing reset.","Scientific Literacy: mixed Biology/Chemistry/Physics recall.","Foreign Language: vocabulary, grammar, and one written response.","Philosophy: argument development and examples.","Dinner and mental reset.","Social Studies recall: History thematic sheet and correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":9,"focus":"Core coverage 9: Economics calculation and Sociology synthesis.","note":"Use precise terms and show every calculation step.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: synthesis across institutions, social problems, and change.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: formulas, indicators, growth, inflation, unemployment, and policy.","Application checkpoint: economics calculation set and Sociology answer correction.","Lunch and a short reset, no long phone scrolling.","Mathematics: statistics/probability full practice.","Geography: maps, charts, data, and answer structure.","Short movement, hydration, and breathing reset.","Scientific Literacy: weak concepts and one corrected model.","Arabic: comprehension and language accuracy.","Philosophy: concept map across themes.","Dinner and mental reset.","Social Studies recall: Geography mini-test and correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":10,"focus":"Core coverage 10: Official-style SE simulation blocks.","note":"Study with timing discipline, complete answers, and mark awareness.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: timed section with document analysis and concepts.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: timed section with graph/table analysis and policy answer.","Application checkpoint: estimate marks and rewrite two weak answers.","Lunch and a short reset, no long phone scrolling.","Mathematics: timed mixed exercise set.","Civics: definitions and application paragraph.","Short movement, hydration, and breathing reset.","Scientific Literacy: timed short section and correction.","Foreign Language: comprehension and written production.","Philosophy: two essay plans and one paragraph from memory.","Dinner and mental reset.","Social Studies recall: Civics quick test and answer improvement.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":11,"focus":"Core coverage 11: Geography, Math, and Scientific Literacy readiness.","note":"Prepare the first official-exam style while protecting branch subjects.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: light concept recall and examples.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: short indicators and graph recall.","Application checkpoint: one Math set and one Geography answer corrected.","Lunch and a short reset, no long phone scrolling.","Mathematics: functions, statistics, probability, and official-style exercises.","Geography: full map, graph, document, and concise answer method.","Short movement, hydration, and breathing reset.","Scientific Literacy: Physics focus, formulas, and representative questions.","Arabic: reading method and evidence-based answers.","Philosophy: concise concept recall.","Dinner and mental reset.","Social Studies recall: Geography final summary and timed questions.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":12,"focus":"Core coverage 12: History and Economics readiness.","note":"Strengthen the second official-exam style subjects.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: definitions and examples maintenance.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: full official-style section and correction.","Application checkpoint: one Economics answer rewritten after correction.","Lunch and a short reset, no long phone scrolling.","Mathematics: error-log repair only.","History: key timelines, causes, consequences, and complete answer method.","Short movement, hydration, and breathing reset.","Scientific Literacy: light mixed science review.","Foreign Language: grammar and comprehension accuracy.","Philosophy: key themes and example bank.","Dinner and mental reset.","Social Studies recall: History timeline from memory.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":13,"focus":"Core coverage 13: Foreign Language and Scientific Literacy readiness.","note":"Use the day to strengthen non-branch scoring opportunities.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: light document vocabulary and examples.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: policy vocabulary and indicators recall.","Application checkpoint: one language production and one science task corrected.","Lunch and a short reset, no long phone scrolling.","Mathematics: formulas and representative exercises.","History, Geography, Civics: compact memory rotation.","Short movement, hydration, and breathing reset.","Scientific Literacy: Biology and Chemistry key diagrams, terms, and questions.","Foreign Language: full text method, vocabulary, grammar, and writing.","Philosophy: essay method and argument bank.","Dinner and mental reset.","Social Studies recall: mixed memory sheet and correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":14,"focus":"Core coverage 14: Civics and Sociology readiness.","note":"Prepare precise wording for definitions, examples, and official answers.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: high-yield concepts, definitions, documents, and structured answers.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: light maintenance of formulas, graphs, and policies.","Application checkpoint: one Sociology mini-mock and Civics short answers.","Lunch and a short reset, no long phone scrolling.","Mathematics: targeted weak-point correction.","Civics: institutions, citizenship, rights, duties, and application questions.","Short movement, hydration, and breathing reset.","Scientific Literacy: quick Biology/Chemistry/Physics recall.","Arabic: language accuracy and writing connectors.","Philosophy: final definitions and examples.","Dinner and mental reset.","Social Studies recall: Civics definitions and application.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":15,"focus":"Core coverage 15: Philosophy, Arabic, and whole-program closure.","note":"Close the first revision cycle with organized summaries and calm correction.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: final compact review from concept cards.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: final compact review from graphs and definitions.","Application checkpoint: Arabic answer + Philosophy plan correction.","Lunch and a short reset, no long phone scrolling.","Mathematics: light formula sheet and one easy confidence set.","History, Geography, Civics: balanced compact review.","Short movement, hydration, and breathing reset.","Scientific Literacy: final representative questions.","Arabic: literature, comprehension, writing, and language accuracy.","Philosophy: high-yield concepts, arguments, examples, and essay structure.","Dinner and mental reset.","Social Studies recall: final mixed quiz and correction.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":16,"focus":"Second revision 1: Geography, Mathematics, and Physics mock readiness.","note":"Begin the second cycle with the first mock subjects.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: light concept recall only.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: light graph and definition recall.","Application checkpoint: Math set corrected and Geography answer improved.","Lunch and a short reset, no long phone scrolling.","Mathematics: final formulas, functions, statistics, probability, and applications.","Geography: final maps, charts, documents, and concise answers.","Short movement, hydration, and breathing reset.","Scientific Literacy: Physics formulas and representative problems.","Arabic: concise comprehension practice.","Philosophy: light concept recall.","Dinner and mental reset.","Social Studies recall: Geography one-page active recall.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":17,"focus":"Second revision 2: History and Economics mock readiness.","note":"Focus on timing and complete written answers.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: 30-minute examples recall.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: timed mock-style section with graph or table interpretation.","Application checkpoint: correct and rewrite one Economics answer.","Lunch and a short reset, no long phone scrolling.","Mathematics: light formula sheet review.","History: final timeline, turning points, and answer structure.","Short movement, hydration, and breathing reset.","Scientific Literacy: light mixed science recall.","Foreign Language: brief vocabulary and grammar review.","Philosophy: one plan from memory.","Dinner and mental reset.","Social Studies recall: History oral recall and written check.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":18,"focus":"Second revision 3: Biology, Chemistry, and Foreign Language mock readiness.","note":"Reduce overload and strengthen the short science and language blocks.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: light concept flashcards.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: short policy vocabulary recall.","Application checkpoint: science task and language answer corrected.","Lunch and a short reset, no long phone scrolling.","Mathematics: one targeted weak exercise.","History, Geography, Civics: 30-minute maintenance rotation.","Short movement, hydration, and breathing reset.","Scientific Literacy: Biology and Chemistry diagrams, terms, and exercises.","Foreign Language: full text method, vocabulary, grammar, and writing.","Philosophy: light concept cards.","Dinner and mental reset.","Social Studies recall: mixed flashcards only.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":19,"focus":"Second revision 4: Civics and Sociology mock readiness.","note":"Concentrate on definitions, examples, document method, and answer structure.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: full high-yield recap and timed document question.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: light formulas and graphs only.","Application checkpoint: Sociology answer correction and Civics short answers.","Lunch and a short reset, no long phone scrolling.","Mathematics: light confidence exercise.","Civics: final definitions, institutions, values, and application questions.","Short movement, hydration, and breathing reset.","Scientific Literacy: short recall only.","Arabic: language accuracy and expression tools.","Philosophy: short final concept review.","Dinner and mental reset.","Social Studies recall: Civics one-page active recall.","Error log, active recall, tomorrow planning, and organization of materials."]},{"day":20,"focus":"Second revision 5: Philosophy and Arabic final mock readiness.","note":"Finish the pre-mock cycle with clarity, materials ready, and no exhaustion.","sessions":["Breakfast, hydration, desk setup, and exact goals for the day.","Sociology: 30-minute final concept recall and stop.","Closed-book recall from the first block, definitions, diagrams, formulas, or key arguments.","Economics: 30-minute final graph/formula recall and stop.","Application checkpoint: Arabic answer and Philosophy plan corrected.","Lunch and a short reset, no long phone scrolling.","Mathematics: easy confidence set only.","History, Geography, Civics: very light maintenance.","Short movement, hydration, and breathing reset.","Scientific Literacy: final key terms and diagrams only.","Arabic: final reading method, writing plan, language accuracy, and literary terms.","Philosophy: high-yield concepts, arguments, and examples.","Dinner and mental reset.","Social Studies recall: gentle recall, then prepare exam-day materials.","Error log, active recall, tomorrow planning, and organization of materials."]}]};
+    const revisionTime = [{"time": "8:00 to 9:30 AM", "type": "Priority Core Block 1", "class": "study"}, {"time": "9:30 to 9:45 AM", "type": "Active Recall", "class": "review"}, {"time": "9:45 to 11:15 AM", "type": "Priority Core Block 2", "class": "study"}, {"time": "11:15 AM to 12:00 PM", "type": "Application Check", "class": "practice"}, {"time": "12:00 to 12:45 PM", "type": "Lunch Reset", "class": "break"}, {"time": "12:45 to 2:15 PM", "type": "Priority Core Block 3", "class": "practice"}, {"time": "2:15 to 3:15 PM", "type": "History, Geography, Civics", "class": "study"}, {"time": "3:15 to 3:30 PM", "type": "Short Break", "class": "break"}, {"time": "3:30 to 4:45 PM", "type": "Priority Core Block 4", "class": "practice"}, {"time": "4:45 to 5:30 PM", "type": "Language / Support Subject", "class": "study"}, {"time": "5:30 to 6:15 PM", "type": "Philosophy / Memorization", "class": "study"}, {"time": "6:15 to 6:45 PM", "type": "Dinner", "class": "break"}, {"time": "6:45 to 7:45 PM", "type": "Social Studies Recall", "class": "review"}, {"time": "7:45 to 8:50 PM", "type": "Error Log and Planning", "class": "review"}];
+    let activeRevisionBranch = "LS";
+    let activeRevisionDay = 1;
+    let activeRevisionDateLabel = "";
+    const REVISION_TOTAL_DAYS = 20;
+    const REVISION_PLAN_START_DATE = "2026-05-19";
+    const REVISION_PLAN_END_DATE = "2026-06-07";
+
+    const revisionBranchNames = {
+      LS: "Life Sciences",
+      SE: "Sociology & Economics"
+    };
+
+    function getReadingDayNumber(status) {
+      const match = String(status || "").match(/Reading Day\s+(\d+)/i);
+      return match ? Number(match[1]) : null;
+    }
+
+    function getRevisionPlanDay(item) {
+      if (!item) return null;
+      const itemDate = String(item.date || "");
+      if (itemDate < REVISION_PLAN_START_DATE || itemDate > REVISION_PLAN_END_DATE) return null;
+      if (typeof item.revisionPlanDay === "number") return item.revisionPlanDay;
+      const readingDay = getReadingDayNumber(item.status);
+      return readingDay && readingDay <= REVISION_TOTAL_DAYS ? readingDay : null;
+    }
+
+    function revisionStorageKey(branch, day) {
+      return "grade12Revision_" + branch + "_day_" + day;
+    }
+
+    function isRevisionDone(branch, day) {
+      return localStorage.getItem(revisionStorageKey(branch, day)) === "true";
+    }
+
+    function setRevisionDone(branch, day, value) {
+      localStorage.setItem(revisionStorageKey(branch, day), value ? "true" : "false");
+      updateRevisionProgress();
+    }
+
+    function countRevisionDone(branch) {
+      let count = 0;
+      for (let i = 1; i <= REVISION_TOTAL_DAYS; i++) {
+        if (isRevisionDone(branch, i)) count++;
+      }
+      return count;
+    }
+
+    function updateRevisionProgress() {
+      const done = countRevisionDone(activeRevisionBranch);
+      const text = document.getElementById("revisionProgressText");
+      const fill = document.getElementById("revisionProgressFill");
+      const label = document.getElementById("revisionProgressLabel");
+      if (text) text.textContent = done + " of " + REVISION_TOTAL_DAYS;
+      if (fill) fill.style.width = ((done / REVISION_TOTAL_DAYS) * 100) + "%";
+      if (label) label.textContent = revisionBranchNames[activeRevisionBranch] + " Progress";
+    }
+
+    function openRevisionPlan(dayNumber, branch = activeRevisionBranch || "LS", dateLabel = "") {
+      activeRevisionDay = Math.max(1, Math.min(REVISION_TOTAL_DAYS, Number(dayNumber) || 1));
+      activeRevisionBranch = branch;
+      activeRevisionDateLabel = dateLabel;
+      setRevisionBranch(activeRevisionBranch, false);
+      showRevisionDailyView(false);
+      renderRevisionDay();
+      openModal("revisionModal");
+    }
+
+    function setRevisionBranch(branch, rerender = true) {
+      activeRevisionBranch = branch;
+      document.getElementById("revLsTab")?.classList.toggle("active", branch === "LS");
+      document.getElementById("revSeTab")?.classList.toggle("active", branch === "SE");
+      updateRevisionProgress();
+      if (rerender) renderRevisionDay();
+      if (!document.getElementById("revisionFullView")?.classList.contains("revision-hidden")) {
+        renderRevisionFullPlan();
+      }
+    }
+
+    function getRevisionOrderedSessions(branch, day) {
+      const s = day.sessions || [];
+      if (branch === "LS") {
+        return [
+          s[1],
+          "Closed-book recall from Biology: diagrams, definitions, key steps, and common mistakes.",
+          s[9] || "Physics: targeted problem-solving and concept application.",
+          s[4],
+          s[5],
+          s[3] || "Mathematics: formulas, methods, and timed exercises.",
+          s[7],
+          s[8],
+          s[6] || "Chemistry: formulas, reactions, and corrected exercises.",
+          s[10],
+          s[11],
+          s[12],
+          s[13],
+          s[14]
+        ];
+      }
+      return [
+        s[1],
+        "Closed-book recall from Sociology: definitions, key concepts, examples, and possible document questions.",
+        s[3],
+        s[4],
+        s[5],
+        s[6],
+        s[7],
+        s[8],
+        s[9],
+        s[10],
+        s[11],
+        s[12],
+        s[13],
+        s[14]
+      ];
+    }
+
+    function renderRevisionDay() {
+      const day = revisionData[activeRevisionBranch].find(item => item.day === activeRevisionDay);
+      if (!day) return;
+      const title = document.getElementById("revisionTitle");
+      const subtitle = document.getElementById("revisionSubtitle");
+      const focus = document.getElementById("revisionFocusText");
+      const note = document.getElementById("revisionDayNote");
+      const tbody = document.getElementById("revisionDailyTable");
+      const completed = isRevisionDone(activeRevisionBranch, activeRevisionDay) ? " · Completed" : "";
+      if (title) title.textContent = revisionBranchNames[activeRevisionBranch] + " · Reading Day " + activeRevisionDay;
+      if (subtitle) subtitle.textContent = (activeRevisionDateLabel ? activeRevisionDateLabel + " · " : "") + "Detailed revision plan from 8:00 AM to 8:50 PM, with preparation completed before 8:00" + completed + ".";
+      if (focus) focus.textContent = day.focus;
+      if (note) note.innerHTML = "<strong>Day Note:</strong> " + day.note;
+      const prep = document.getElementById("revisionPrepText");
+      if (prep) prep.textContent = day.sessions[0] || "Breakfast, hydration, desk setup, and exact goals for the day.";
+      const orderedSessions = getRevisionOrderedSessions(activeRevisionBranch, day);
+      if (tbody) {
+        tbody.innerHTML = "";
+        revisionTime.forEach((slot, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="revision-time">${slot.time}</td>
+            <td><span class="revision-pill ${slot.class}">${slot.type}</span></td>
+            <td>${orderedSessions[index] || ""}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+      updateRevisionProgress();
+    }
+
+    function showRevisionDailyView(rerender = true) {
+      document.getElementById("revisionDailyView")?.classList.remove("revision-hidden");
+      document.getElementById("revisionFullView")?.classList.add("revision-hidden");
+      if (rerender) renderRevisionDay();
+    }
+
+    function showRevisionFullPlan() {
+      document.getElementById("revisionDailyView")?.classList.add("revision-hidden");
+      document.getElementById("revisionFullView")?.classList.remove("revision-hidden");
+      renderRevisionFullPlan();
+    }
+
+    function renderRevisionFullPlan() {
+      const grid = document.getElementById("revisionFullGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      revisionData[activeRevisionBranch].forEach(day => {
+        const ordered = getRevisionOrderedSessions(activeRevisionBranch, day);
+        const important = [
+          ["Priority Core Block 1", ordered[0]],
+          ["Priority Core Block 2", ordered[2]],
+          ["Priority Core Block 3", ordered[5]],
+          ["History, Geography, Civics", ordered[6]],
+          ["Philosophy / Memorization", ordered[10]],
+          ["Evening Correction", ordered[12]]
+        ];
+        const acc = document.createElement("div");
+        acc.className = "revision-accordion";
+        acc.innerHTML = `
+          <button type="button" onclick="this.parentElement.classList.toggle('open')">
+            <span>Reading Day ${day.day}</span>
+            <span>${day.focus}</span>
+          </button>
+          <div class="revision-accordion-content">
+            <div class="revision-mini-grid">
+              ${important.map(item => `
+                <div class="revision-mini-card">
+                  <h5>${item[0]}</h5>
+                  <p>${item[1]}</p>
+                </div>
+              `).join("")}
+            </div>
+            <div class="revision-note"><strong>Day Note:</strong> ${day.note}</div>
+            <div class="revision-tools"><button class="revision-tool-btn primary" type="button" onclick="activeRevisionDay=${day.day}; activeRevisionDateLabel=""; showRevisionDailyView();">Open This Day</button></div>
+          </div>
+        `;
+        grid.appendChild(acc);
+      });
+    }
+
+    function revisionPreviousDay() {
+      activeRevisionDateLabel = "";
+      activeRevisionDay = activeRevisionDay === 1 ? REVISION_TOTAL_DAYS : activeRevisionDay - 1;
+      showRevisionDailyView();
+    }
+
+    function revisionNextDay() {
+      activeRevisionDateLabel = "";
+      activeRevisionDay = activeRevisionDay === REVISION_TOTAL_DAYS ? 1 : activeRevisionDay + 1;
+      showRevisionDailyView();
+    }
+
+    function markRevisionCompleted() {
+      setRevisionDone(activeRevisionBranch, activeRevisionDay, true);
+      renderRevisionDay();
+      showToast("Reading Day " + activeRevisionDay + " marked as completed");
+    }
+
+    function unmarkRevisionCompleted() {
+      setRevisionDone(activeRevisionBranch, activeRevisionDay, false);
+      renderRevisionDay();
+      showToast("Completion removed for Reading Day " + activeRevisionDay);
+    }
+
+    function renderCalendar() {
+      const calendar = document.getElementById("calendar");
+      calendar.innerHTML = "";
+      weekdays.forEach(day => {
+        const header = document.createElement("div");
+        header.className = "weekday";
+        header.textContent = day;
+        calendar.appendChild(header);
+      });
+
+      schedule.forEach(item => {
+        const card = document.createElement("article");
+        card.className = `day-card ${item.type}`;
+        const readingPlanDay = getRevisionPlanDay(item);
+
+        if (readingPlanDay) {
+          card.classList.add("revision-enabled");
+          card.setAttribute("title", "Click to open Revision Plan for " + item.label);
+          card.addEventListener("click", event => {
+            if (!event.target.closest("button")) openRevisionPlan(readingPlanDay, activeRevisionBranch, item.label);
+          });
+        }
+
+        if (item.type === "graduation") {
+          card.setAttribute("title", "Click to celebrate Graduation Day");
+          card.addEventListener("click", () => celebrateGraduation(card));
+        }
+
+        if (item.type === "farewell") {
+          card.setAttribute("title", "Click to view the Senior Farewell program");
+          card.addEventListener("click", () => openFarewellProgram(card));
+        }
+
+        const top = document.createElement("div");
+        top.innerHTML = `<div class="date">${item.label}</div><div class="status ${item.status.includes("Revision Plan") ? "revision-plan-label" : ""}">${item.status}</div>`;
+        card.appendChild(top);
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        if (readingPlanDay) {
+          const btn = document.createElement("button");
+          btn.className = "mini-btn revision-btn";
+          btn.textContent = "Revision Plan";
+          btn.onclick = event => {
+            event.stopPropagation();
+            openRevisionPlan(readingPlanDay, activeRevisionBranch, item.label);
+          };
+          actions.appendChild(btn);
+        }
+
+        if (item.type === "official") {
+          const btn = document.createElement("button");
+          btn.className = "mini-btn official-btn";
+          btn.textContent = "Official Exam";
+          btn.onclick = () => openOfficial(item.date);
+          actions.appendChild(btn);
+        }
+
+        if (item.type === "mock") {
+          const btn = document.createElement("button");
+          btn.className = "mini-btn official-btn";
+          btn.textContent = "Exam & Proctors";
+          btn.onclick = () => openMock(item.date);
+          actions.appendChild(btn);
+        }
+
+        if (item.type === "check") {
+          const btn = document.createElement("button");
+          btn.className = "mini-btn check-btn";
+          btn.textContent = "Check-in";
+          btn.onclick = openCheckIn;
+          actions.appendChild(btn);
+        }
+
+        if (item.type === "correction") {
+          const btn = document.createElement("button");
+          btn.className = "mini-btn feedback-btn";
+          btn.textContent = "Correction & Feedback Program";
+          btn.onclick = openFeedbackProgram;
+          actions.appendChild(btn);
+        }
+
+        if (item.type === "farewell") {
+          const btn = document.createElement("button");
+          btn.className = "mini-btn farewell-btn";
+          btn.textContent = "Senior Farewell";
+          btn.onclick = event => {
+            event.stopPropagation();
+            openFarewellProgram(card);
+          };
+          actions.appendChild(btn);
+        }
+
+        card.appendChild(actions);
+        calendar.appendChild(card);
+      });
+    }
+
+    function openOfficial(date) {
+      activeExamDate = date;
+      activeExamSource = officialExams;
+      activeBranch = activeBranch || "life";
+      document.getElementById("officialTitle").textContent = "Official Exams";
+      document.getElementById("officialDate").textContent = officialExams[date].display;
+      setModalBranch(activeBranch);
+      openModal("officialModal");
+    }
+
+    function openMock(date) {
+      activeExamDate = date;
+      activeExamSource = mockExams;
+      activeBranch = activeBranch || "life";
+      document.getElementById("officialTitle").textContent = "Mock Exams & Proctoring";
+      document.getElementById("officialDate").textContent = mockExams[date].display;
+      setModalBranch(activeBranch);
+      openModal("officialModal");
+    }
+
+    function formatProctorPills(proctors) {
+      return proctors
+        .split("|")
+        .map(item => item.trim())
+        .filter(Boolean)
+        .map(item => `<span class="proctor-pill">${item}</span>`)
+        .join("");
+    }
+
+    function toggleProctors(button) {
+      const row = button.closest(".exam-proctor-row");
+      if (!row) return;
+      const isOpen = row.classList.toggle("open");
+      button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      const marker = button.querySelector(".toggle-dot");
+      if (marker) marker.textContent = isOpen ? "−" : "+";
+    }
+
+    function setModalBranch(branch) {
+      activeBranch = branch;
+      document.getElementById("lifeTab").classList.toggle("active", branch === "life");
+      document.getElementById("esTab").classList.toggle("active", branch === "es");
+      const list = document.getElementById("examList");
+      list.innerHTML = "";
+
+      if (activeExamSource === mockExams) {
+        const guidance = document.createElement("div");
+        guidance.className = "exam-guidance";
+        guidance.textContent = "The student selects the branch, then sees the exact mock exam, timing, and proctoring rotation for that day.";
+        list.appendChild(guidance);
+      }
+
+      const items = activeExamSource[activeExamDate]?.[branch] || [];
+      items.forEach(exam => {
+        const row = document.createElement("div");
+        row.className = `exam-item${exam.proctors ? " has-proctors" : ""}`;
+        const proctorBlock = exam.proctors
+          ? `<div class="exam-proctor-row"><button class="proctor-toggle" type="button" aria-expanded="false" onclick="toggleProctors(this)"><span>Proctoring</span><span class="toggle-dot">+</span></button><span class="proctor-flow">${formatProctorPills(exam.proctors)}</span></div>`
+          : "";
+        row.innerHTML = `<div class="exam-time">${exam.time}</div><div class="exam-detail-stack"><div class="exam-meta-line"><span class="proctor-label">Exam</span><span class="exam-subject">${exam.subject}</span></div>${proctorBlock}</div>`;
+        list.appendChild(row);
+      });
+    }
+
+    function openCheckIn() {
+      updatePreview();
+      openModal("checkModal");
+    }
+
+    function openFeedbackProgram() {
+      openModal("feedbackModal");
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add("open");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("open");
+      if (id === "farewellModal") {
+        stopFarewellSpeech();
+        const box = document.getElementById("farewellMessageBox");
+        const button = box?.querySelector(".farewell-message-toggle");
+        const marker = button?.querySelector(".toggle-dot");
+        if (box) box.classList.remove("open");
+        if (button) button.setAttribute("aria-expanded", "false");
+        if (marker) marker.textContent = "+";
+        const label = button?.querySelector("span:first-child");
+        if (label) label.textContent = "▶ Play Message of the Day";
+      }
+    }
+
+    function buildRequestText() {
+      const studentName = document.getElementById("studentName").value.trim() || "Student name not entered";
+      const branch = document.getElementById("studentBranch").value;
+      const subject = document.getElementById("subject").value.trim() || "Subject not entered";
+      const teacher = document.getElementById("teacherName").value.trim() || "Teacher name not entered";
+      const day = document.getElementById("visitDay").value;
+      const time = document.getElementById("visitTime").value || "08:00";
+      const questions = document.getElementById("questions").value.trim() || "No specific questions added yet.";
+
+      return `Check-in Request\n\nStudent: ${studentName}\nBranch: ${branch}\nSubject: ${subject}\nTeacher: ${teacher}\nPreferred time: ${day} at ${time}\n\nClarification questions:\n${questions}\n\nThank you.`;
+    }
+
+    function validateTime() {
+      const input = document.getElementById("visitTime");
+      const value = input.value;
+      if (value < "08:00") input.value = "08:00";
+      if (value > "15:00") input.value = "15:00";
+    }
+
+    function updatePreview() {
+      validateTime();
+      document.getElementById("requestPreview").textContent = buildRequestText();
+    }
+
+    let audioContext;
+    let farewellSpeechUtterance = null;
+
+    function getPreferredEnglishVoice() {
+      if (!("speechSynthesis" in window)) return null;
+      const voices = window.speechSynthesis.getVoices() || [];
+      const preferredMalePattern = /(daniel|alex|fred|thomas|jorge|aaron|david|guy|ryan|christopher|google uk english male|microsoft guy|male)/i;
+      const fallbackNaturalPattern = /(google|microsoft|apple|enhanced|premium|natural)/i;
+      return voices.find(voice => /^en/i.test(voice.lang) && preferredMalePattern.test(voice.name))
+        || voices.find(voice => /^en/i.test(voice.lang) && /US|GB|UK/i.test(voice.lang + ' ' + voice.name) && fallbackNaturalPattern.test(voice.name))
+        || voices.find(voice => /^en/i.test(voice.lang) && /US|GB|UK/i.test(voice.lang + ' ' + voice.name))
+        || voices.find(voice => /^en/i.test(voice.lang))
+        || null;
+    }
+
+    function stopFarewellSpeech() {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+      farewellSpeechUtterance = null;
+    }
+
+    function speakFarewellMessage(text) {
+      if (!("speechSynthesis" in window) || !text) return;
+      stopFarewellSpeech();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      utterance.rate = 0.92;
+      utterance.pitch = 0.92;
+      utterance.volume = 1;
+      const selectedVoice = getPreferredEnglishVoice();
+      if (selectedVoice) utterance.voice = selectedVoice;
+      farewellSpeechUtterance = utterance;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function playClickSound(kind = "soft") {
+      try {
+        audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === "suspended") audioContext.resume();
+
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const now = audioContext.currentTime;
+
+        oscillator.type = kind === "success" ? "sine" : "triangle";
+        oscillator.frequency.setValueAtTime(kind === "success" ? 620 : 420, now);
+        oscillator.frequency.exponentialRampToValueAtTime(kind === "success" ? 880 : 520, now + 0.08);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(kind === "success" ? 0.07 : 0.045, now + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start(now);
+        oscillator.stop(now + 0.13);
+      } catch (error) {
+        return;
+      }
+    }
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.onvoiceschanged = () => getPreferredEnglishVoice();
+      getPreferredEnglishVoice();
+    }
+
+    function bindClickSound() {
+      document.addEventListener("click", event => {
+        const interactive = event.target.closest("button, .day-card.graduation, .day-card.farewell");
+        if (!interactive) return;
+        playClickSound((interactive.classList.contains("graduation") || interactive.classList.contains("farewell")) ? "success" : "soft");
+      });
+    }
+
+    function celebrateGraduation(card) {
+      if (card.classList.contains("is-celebrating")) return;
+
+      card.classList.add("is-celebrating");
+      const overlay = document.createElement("div");
+      overlay.className = "grad-overlay";
+
+      const message = document.createElement("div");
+      message.className = "grad-message";
+      message.textContent = "Congratulations, Class of 2026!";
+      overlay.appendChild(message);
+
+      const confettiColors = ["#fbbf24", "#ec4899", "#60a5fa", "#34d399", "#c084fc"];
+
+      for (let i = 0; i < 16; i++) {
+        const piece = document.createElement("span");
+        piece.className = "confetti-piece";
+        piece.style.left = `${Math.random() * 92}%`;
+        piece.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+        piece.style.animationDelay = `${Math.random() * 0.45}s`;
+        overlay.appendChild(piece);
+      }
+
+      for (let i = 0; i < 5; i++) {
+        const cap = document.createElement("span");
+        cap.className = "cap-piece";
+        cap.style.left = `${8 + Math.random() * 80}%`;
+        cap.style.animationDelay = `${Math.random() * 0.35}s`;
+        overlay.appendChild(cap);
+      }
+
+      card.appendChild(overlay);
+      setTimeout(() => {
+        overlay.remove();
+        card.classList.remove("is-celebrating");
+      }, 2600);
+    }
+
+    function toggleFarewellMessage(button) {
+      const box = button.closest(".farewell-message-box");
+      if (!box) return;
+      const isOpen = box.classList.toggle("open");
+      button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      const marker = button.querySelector(".toggle-dot");
+      if (marker) marker.textContent = isOpen ? "■" : "+";
+      const label = button.querySelector("span:first-child");
+      if (label) label.textContent = isOpen ? "■ Stop Message" : "▶ Play Message of the Day";
+
+      const panel = box.querySelector(".farewell-message-panel");
+      const messageText = panel ? panel.textContent.trim() : "";
+      if (isOpen) {
+        speakFarewellMessage(messageText);
+      } else {
+        stopFarewellSpeech();
+      }
+    }
+
+    function openFarewellProgram(card) {
+      if (card) celebrateFarewell(card);
+      openModal("farewellModal");
+    }
+
+    function celebrateFarewell(card) {
+      if (card.classList.contains("is-celebrating")) return;
+
+      card.classList.add("is-celebrating");
+      const overlay = document.createElement("div");
+      overlay.className = "grad-overlay";
+
+      const message = document.createElement("div");
+      message.className = "grad-message farewell-message";
+      message.textContent = "Senior Farewell, Class of 2026!";
+      overlay.appendChild(message);
+
+      const waveSymbols = ["👋", "✨", "🎓", "💛"];
+      const confettiColors = ["#fb7185", "#f59e0b", "#60a5fa", "#a78bfa"];
+
+      for (let i = 0; i < 12; i++) {
+        const wave = document.createElement("span");
+        wave.className = "wave-piece";
+        wave.textContent = waveSymbols[Math.floor(Math.random() * waveSymbols.length)];
+        wave.style.left = `${6 + Math.random() * 84}%`;
+        wave.style.animationDelay = `${Math.random() * 0.45}s`;
+        overlay.appendChild(wave);
+      }
+
+      for (let i = 0; i < 12; i++) {
+        const piece = document.createElement("span");
+        piece.className = "confetti-piece";
+        piece.style.left = `${Math.random() * 92}%`;
+        piece.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+        piece.style.animationDelay = `${Math.random() * 0.45}s`;
+        overlay.appendChild(piece);
+      }
+
+      card.appendChild(overlay);
+      setTimeout(() => {
+        overlay.remove();
+        card.classList.remove("is-celebrating");
+      }, 2700);
+    }
+
+    function showToast(text = "Copied") {
+      const toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    async function copyRequest() {
+      updatePreview();
+      const text = buildRequestText();
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Request copied");
+      } catch (error) {
+        showToast("Copy the text manually");
+      }
+    }
+
+    function shareToTeams() {
+      updatePreview();
+      const text = buildRequestText();
+      copyRequest();
+      const teamsUrl = "https://teams.microsoft.com/share?href=" + encodeURIComponent("Check-in Request") + "&msgText=" + encodeURIComponent(text);
+      window.open(teamsUrl, "_blank", "noopener,noreferrer");
+    }
+
+    function shareToOutlook() {
+      updatePreview();
+      const text = buildRequestText();
+      const subject = encodeURIComponent("Check-in Request");
+      const body = encodeURIComponent(text);
+      window.open(`https://outlook.office.com/mail/deeplink/compose?subject=${subject}&body=${body}`, "_blank", "noopener,noreferrer");
+    }
+
+    async function nativeShare() {
+      updatePreview();
+      const text = buildRequestText();
+      if (navigator.share) {
+        await navigator.share({ title: "Check-in Request", text });
+      } else {
+        await copyRequest();
+      }
+    }
+
+    function setupLegendFilters() {
+      const lightAllBtn = document.getElementById("lightAllBtn");
+      const filterTypes = ["school", "reading", "mock", "check", "correction", "graduation", "farewell", "official"];
+
+      document.querySelectorAll(".filter-chip").forEach(button => {
+        button.addEventListener("click", () => {
+          const filter = button.dataset.filter;
+          const isActive = button.classList.toggle("active");
+          document.body.classList.toggle(`filter-${filter}`, isActive);
+
+          const allActive = filterTypes.every(type => document.body.classList.contains(`filter-${type}`));
+          lightAllBtn.classList.toggle("active", allActive);
+          lightAllBtn.innerHTML = allActive
+            ? '<span class="dot"></span>Clear Lights'
+            : '<span class="dot"></span>Light Up All';
+        });
+      });
+
+      lightAllBtn.addEventListener("click", () => {
+        const shouldLight = !lightAllBtn.classList.contains("active");
+        lightAllBtn.classList.toggle("active", shouldLight);
+        lightAllBtn.innerHTML = shouldLight
+          ? '<span class="dot"></span>Clear Lights'
+          : '<span class="dot"></span>Light Up All';
+
+        filterTypes.forEach(type => {
+          document.body.classList.toggle(`filter-${type}`, shouldLight);
+          const button = document.querySelector(`.filter-chip[data-filter="${type}"]`);
+          if (button) button.classList.toggle("active", shouldLight);
+        });
+      });
+    }
+
+    document.addEventListener("input", event => {
+      if (event.target.closest("#checkForm")) updatePreview();
+    });
+
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        closeModal("officialModal");
+        closeModal("checkModal");
+        closeModal("feedbackModal");
+        closeModal("farewellModal");
+        closeModal("revisionModal");
+      }
+    });
+
+    document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
+      backdrop.addEventListener("click", event => {
+        if (event.target === backdrop) backdrop.classList.remove("open");
+      });
+    });
+
+
+    function htmlEscape(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function getCopyColor(type) {
+      const colors = {
+        school: { bg: "#f1f5f9", line: "#94a3b8", ink: "#1f2937" },
+        reading: { bg: "#e8f3ff", line: "#60a5fa", ink: "#1e3a8a" },
+        mock: { bg: "#fff3cd", line: "#eab308", ink: "#713f12" },
+        official: { bg: "#fee2e2", line: "#ef4444", ink: "#7f1d1d" },
+        check: { bg: "#dcfce7", line: "#22c55e", ink: "#14532d" },
+        correction: { bg: "#ede9fe", line: "#8b5cf6", ink: "#4c1d95" },
+        graduation: { bg: "#fce7f3", line: "#ec4899", ink: "#831843" },
+        farewell: { bg: "#fff1f2", line: "#fb7185", ink: "#881337" }
+      };
+      return colors[type] || { bg: "#ffffff", line: "#e5e7eb", ink: "#1f2937" };
+    }
+
+    function getCopyActions(item) {
+      const readingPlanDay = getRevisionPlanDay(item);
+      const actions = [];
+      if (readingPlanDay) actions.push("Revision Plan");
+      if (item.type === "official") actions.push("Official Exam");
+      if (item.type === "mock") actions.push("Exam & Proctors");
+      if (item.type === "check") actions.push("Check-in");
+      if (item.type === "correction") actions.push("Correction & Feedback");
+      if (item.type === "farewell") actions.push("Senior Farewell");
+      return actions;
+    }
+
+    function buildWordReadyMainPagePayload() {
+      const title = (document.querySelector("h1") || {}).textContent || "Grade 12 Schedule, 2026";
+      const subtitle = (document.querySelector(".subtitle") || {}).textContent || "";
+      const note = (document.querySelector(".note-box") || {}).textContent || "";
+
+      const tableRows = [];
+      tableRows.push("<tr>" + weekdays.map(day =>
+        `<th style="border:1px solid #cbd5e1;background:#e2e8f0;color:#334155;padding:9px 7px;text-align:center;font-weight:800;font-size:12px;">${htmlEscape(day)}</th>`
+      ).join("") + "</tr>");
+
+      for (let start = 0; start < schedule.length; start += 7) {
+        const week = schedule.slice(start, start + 7);
+        while (week.length < 7) week.push({ label: "", status: "", type: "blank" });
+        tableRows.push("<tr>" + week.map(item => {
+          const color = getCopyColor(item.type);
+          const actions = getCopyActions(item);
+          const actionHtml = actions.length
+            ? `<div style="margin-top:7px;">${actions.map(action => `<span style="display:inline-block;margin:2px 3px 0 0;padding:3px 7px;border-radius:11px;background:#ffffff;border:1px solid ${color.line};color:${color.ink};font-size:10px;font-weight:700;">${htmlEscape(action)}</span>`).join("")}</div>`
+            : "";
+          return `<td style="border:1px solid #cbd5e1;background:${color.bg};border-top:5px solid ${color.line};vertical-align:top;padding:9px 8px;width:14.28%;height:78px;color:${color.ink};font-family:Arial,Helvetica,sans-serif;">
+            <div style="font-weight:800;font-size:12px;line-height:1.25;color:#111827;">${htmlEscape(item.label)}</div>
+            <div style="font-size:12px;line-height:1.35;margin-top:5px;color:${color.ink};">${htmlEscape(item.status)}</div>
+            ${actionHtml}
+          </td>`;
+        }).join("") + "</tr>");
+      }
+
+      const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body>
+  <div style="font-family:Arial,Helvetica,sans-serif;color:#1f2937;max-width:1100px;">
+    <h1 style="margin:0 0 8px;font-size:26px;line-height:1.2;color:#111827;">${htmlEscape(title)}</h1>
+    <p style="margin:0 0 14px;color:#475569;line-height:1.45;font-size:13px;">${htmlEscape(subtitle)}</p>
+    <table style="border-collapse:collapse;width:100%;table-layout:fixed;font-family:Arial,Helvetica,sans-serif;" cellspacing="0" cellpadding="0">
+      ${tableRows.join("\n")}
+    </table>
+    <p style="margin:14px 0 0;background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;padding:10px 12px;border-radius:10px;line-height:1.45;font-size:13px;">${htmlEscape(note)}</p>
+  </div>
+</body>
+</html>`;
+
+      const textRows = [];
+      textRows.push(title);
+      if (subtitle.trim()) textRows.push(subtitle.trim());
+      textRows.push(weekdays.join("\t"));
+      for (let start = 0; start < schedule.length; start += 7) {
+        const week = schedule.slice(start, start + 7);
+        while (week.length < 7) week.push({ label: "", status: "" });
+        textRows.push(week.map(item => `${item.label} ${item.status}`.trim()).join("\t"));
+      }
+      if (note.trim()) textRows.push(note.trim());
+
+      return { html, text: textRows.join("\n") };
+    }
+
+    function fallbackCopyPlainText(text) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.left = "-9999px";
+      area.style.top = "0";
+      document.body.appendChild(area);
+      area.focus();
+      area.select();
+      const copied = document.execCommand("copy");
+      area.remove();
+      return copied;
+    }
+
+    function fallbackCopyRichHtml(html, text) {
+      const holder = document.createElement("div");
+      holder.setAttribute("contenteditable", "true");
+      holder.style.position = "fixed";
+      holder.style.left = "-9999px";
+      holder.style.top = "0";
+      holder.style.width = "1px";
+      holder.style.height = "1px";
+      holder.style.overflow = "hidden";
+      holder.innerHTML = html;
+      document.body.appendChild(holder);
+
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(holder);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      const copied = document.execCommand("copy");
+      selection.removeAllRanges();
+      holder.remove();
+      return copied || fallbackCopyPlainText(text);
+    }
+
+    function markMainCopyButton() {
+      const button = document.getElementById("mainCopyBtn");
+      if (!button) return;
+      const label = button.querySelector(".main-copy-label");
+      button.classList.add("copied");
+      if (label) label.textContent = "Copied";
+      setTimeout(() => {
+        button.classList.remove("copied");
+        if (label) label.textContent = "Copy";
+      }, 1600);
+    }
+
+    async function copyMainPage() {
+      const payload = buildWordReadyMainPagePayload();
+      let copied = false;
+
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          const item = new ClipboardItem({
+            "text/html": new Blob([payload.html], { type: "text/html" }),
+            "text/plain": new Blob([payload.text], { type: "text/plain" })
+          });
+          await navigator.clipboard.write([item]);
+          copied = true;
+        }
+      } catch (error) {
+        copied = false;
+      }
+
+      if (!copied) copied = fallbackCopyRichHtml(payload.html, payload.text);
+
+      if (copied) {
+        markMainCopyButton();
+        showToast("Main page copied for Word");
+      } else {
+        showToast("Copy was not allowed by this browser");
+      }
+    }
+
+
+
+    function getRevisionCopyColor(slotClass) {
+      const colors = {
+        study: { bg: "#dbeafe", line: "#60a5fa", ink: "#1d4ed8" },
+        practice: { bg: "#ede9fe", line: "#a78bfa", ink: "#6d28d9" },
+        break: { bg: "#fef3c7", line: "#f59e0b", ink: "#92400e" },
+        review: { bg: "#d1fae5", line: "#10b981", ink: "#047857" }
+      };
+      return colors[slotClass] || { bg: "#f8fafc", line: "#cbd5e1", ink: "#334155" };
+    }
+
+    function buildWordReadyRevisionFullPlanPayload() {
+      const branchName = revisionBranchNames[activeRevisionBranch] || activeRevisionBranch || "Revision Plan";
+      const title = branchName + " - Full 20-Day Revision Plan";
+      const rows = [];
+      const textRows = [title];
+
+      rows.push(`
+        <tr>
+          <th style="border:1px solid #cbd5e1;background:#0f172a;color:#ffffff;padding:10px 8px;text-align:center;font-weight:900;font-size:12px;width:12%;">Day</th>
+          <th style="border:1px solid #cbd5e1;background:#1d4ed8;color:#ffffff;padding:10px 8px;text-align:center;font-weight:900;font-size:12px;width:18%;">Time</th>
+          <th style="border:1px solid #cbd5e1;background:#4f46e5;color:#ffffff;padding:10px 8px;text-align:center;font-weight:900;font-size:12px;width:20%;">Session Type</th>
+          <th style="border:1px solid #cbd5e1;background:#7c3aed;color:#ffffff;padding:10px 8px;text-align:left;font-weight:900;font-size:12px;width:50%;">Task</th>
+        </tr>
+      `);
+      textRows.push(["Day", "Time", "Session Type", "Task"].join("\t"));
+
+      (revisionData[activeRevisionBranch] || []).forEach(day => {
+        const ordered = getRevisionOrderedSessions(activeRevisionBranch, day);
+        rows.push(`
+          <tr>
+            <td colspan="4" style="border:1px solid #cbd5e1;background:#eef2ff;color:#312e81;padding:10px 9px;font-weight:900;font-size:13px;line-height:1.35;">
+              Reading Day ${htmlEscape(day.day)} - ${htmlEscape(day.focus)}
+            </td>
+          </tr>
+        `);
+        rows.push(`
+          <tr>
+            <td style="border:1px solid #cbd5e1;background:#fffbeb;color:#78350f;padding:8px 7px;text-align:center;font-weight:900;font-size:12px;">${htmlEscape(day.day)}</td>
+            <td style="border:1px solid #cbd5e1;background:#fff7ed;color:#92400e;padding:8px 7px;font-weight:900;font-size:12px;">Before 8:00 AM</td>
+            <td style="border:1px solid #cbd5e1;background:#fef3c7;color:#92400e;padding:8px 7px;font-weight:900;font-size:12px;">Preparation</td>
+            <td style="border:1px solid #cbd5e1;background:#ffffff;color:#334155;padding:8px 7px;font-size:12px;line-height:1.45;">${htmlEscape(day.sessions[0] || "Breakfast, hydration, desk setup, and exact goals for the day.")}</td>
+          </tr>
+        `);
+        textRows.push(["Reading Day " + day.day, "Focus", branchName, day.focus].join("\t"));
+        textRows.push([day.day, "Before 8:00 AM", "Preparation", day.sessions[0] || ""].join("\t"));
+
+        revisionTime.forEach((slot, index) => {
+          const color = getRevisionCopyColor(slot.class);
+          const task = ordered[index] || "";
+          rows.push(`
+            <tr>
+              <td style="border:1px solid #cbd5e1;background:#f8fafc;color:#334155;padding:8px 7px;text-align:center;font-weight:900;font-size:12px;">${htmlEscape(day.day)}</td>
+              <td style="border:1px solid #cbd5e1;background:#fcfdff;color:#334155;padding:8px 7px;font-weight:900;font-size:12px;white-space:nowrap;">${htmlEscape(slot.time)}</td>
+              <td style="border:1px solid #cbd5e1;background:${color.bg};color:${color.ink};padding:8px 7px;font-weight:900;font-size:12px;">${htmlEscape(slot.type)}</td>
+              <td style="border:1px solid #cbd5e1;background:#ffffff;color:#334155;padding:8px 7px;font-size:12px;line-height:1.45;">${htmlEscape(task)}</td>
+            </tr>
+          `);
+          textRows.push([day.day, slot.time, slot.type, task].join("\t"));
+        });
+
+        rows.push(`
+          <tr>
+            <td colspan="4" style="border:1px solid #cbd5e1;background:#fff7ed;color:#78350f;padding:9px 8px;font-size:12px;line-height:1.45;"><strong>Day Note:</strong> ${htmlEscape(day.note)}</td>
+          </tr>
+        `);
+        textRows.push([day.day, "Day Note", "", day.note].join("\t"));
+      });
+
+      const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body>
+  <div style="font-family:Arial,Helvetica,sans-serif;color:#1f2937;max-width:1120px;">
+    <h1 style="margin:0 0 7px;font-size:25px;line-height:1.2;color:#111827;">${htmlEscape(title)}</h1>
+    <p style="margin:0 0 13px;color:#475569;line-height:1.45;font-size:13px;">Complete Word-ready copy of the full 20-day revision program for ${htmlEscape(branchName)}.</p>
+    <table style="border-collapse:collapse;width:100%;font-family:Arial,Helvetica,sans-serif;" cellspacing="0" cellpadding="0">
+      ${rows.join("\n")}
+    </table>
+  </div>
+</body>
+</html>`;
+
+      return { html, text: textRows.join("\n") };
+    }
+
+    function markRevisionFullCopyButton() {
+      const button = document.getElementById("revisionFullCopyBtn");
+      if (!button) return;
+      const label = button.querySelector(".main-copy-label");
+      button.classList.add("copied");
+      if (label) label.textContent = "Copied";
+      setTimeout(() => {
+        button.classList.remove("copied");
+        if (label) label.textContent = "Copy";
+      }, 1600);
+    }
+
+    async function copyRevisionFullPlan() {
+      const payload = buildWordReadyRevisionFullPlanPayload();
+      let copied = false;
+
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          const item = new ClipboardItem({
+            "text/html": new Blob([payload.html], { type: "text/html" }),
+            "text/plain": new Blob([payload.text], { type: "text/plain" })
+          });
+          await navigator.clipboard.write([item]);
+          copied = true;
+        }
+      } catch (error) {
+        copied = false;
+      }
+
+      if (!copied) copied = fallbackCopyRichHtml(payload.html, payload.text);
+
+      if (copied) {
+        markRevisionFullCopyButton();
+        showToast("Full 20-day plan copied for Word");
+      } else {
+        showToast("Copy was not allowed by this browser");
+      }
+    }
+
+
+    function htmlWithLineBreaks(value) {
+      return htmlEscape(value).replace(/\n/g, "<br>");
+    }
+
+    function buildInlineFeedbackTable(selector, tableType) {
+      const table = document.querySelector(selector);
+      if (!table) return { html: "", textRows: [] };
+      const textRows = [];
+      const htmlRows = Array.from(table.rows).map(row => {
+        const isHeader = row.closest("thead") !== null;
+        const cells = Array.from(row.cells).map((cell, cellIndex) => {
+          const tag = isHeader ? "th" : "td";
+          const rawText = (cell.innerText || "").trim();
+          const content = htmlWithLineBreaks(rawText);
+          textRows[textRows.length] = null;
+
+          let style = "border:1px solid #cbd5e1;padding:9px 8px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.38;vertical-align:top;";
+          if (isHeader) {
+            style += "background:#e0e7ff;color:#312e81;font-weight:900;text-align:center;white-space:nowrap;";
+          } else {
+            style += "background:#ffffff;color:#334155;text-align:left;";
+            if (cellIndex === 0) {
+              style += tableType === "student"
+                ? "background:#faf5ff;color:#4c1d95;font-weight:900;text-align:center;vertical-align:middle;"
+                : "background:#eef2ff;color:#312e81;font-weight:900;";
+            }
+            if (cell.classList.contains("after-core")) {
+              style += "background:#fff7ed;color:#7c2d12;font-weight:800;";
+            }
+            if (cell.classList.contains("center-cell")) {
+              style += "text-align:center;vertical-align:middle;font-weight:800;";
+            }
+            if (tableType === "teacher" && cellIndex === 1) {
+              style += "min-width:380px;";
+            }
+          }
+          const colspan = cell.colSpan && cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : "";
+          const rowspan = cell.rowSpan && cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : "";
+          return `<${tag}${colspan}${rowspan} style="${style}">${content}</${tag}>`;
+        }).join("");
+        textRows[textRows.length - 1] = Array.from(row.cells).map(cell => (cell.innerText || "").trim().replace(/\n+/g, " ")).join("\t");
+        return `<tr>${cells}</tr>`;
+      }).join("\n");
+
+      return {
+        html: `<table style="border-collapse:collapse;width:100%;font-family:Arial,Helvetica,sans-serif;margin:8px 0 16px;" cellspacing="0" cellpadding="0">${htmlRows}</table>`,
+        textRows: textRows.filter(Boolean)
+      };
+    }
+
+    function buildWordReadyFeedbackProgramPayload() {
+      const title = (document.getElementById("feedbackTitle") || {}).textContent || "Correction & Feedback";
+      const date = (document.querySelector("#feedbackModal .feedback-title-block p") || {}).textContent || "Wednesday, June 17, 2026";
+      const heroStrong = (document.querySelector("#feedbackModal .feedback-hero strong") || {}).textContent || "";
+      const heroText = (document.querySelector("#feedbackModal .feedback-hero span") || {}).textContent || "";
+      const purpose = (document.querySelector("#feedbackModal .feedback-purpose") || {}).textContent || "";
+      const hint = (document.querySelector("#feedbackModal .hint") || {}).textContent || "";
+      const overviewCards = Array.from(document.querySelectorAll("#feedbackModal .program-card")).map(card => ({
+        label: (card.querySelector("strong") || {}).textContent || "",
+        value: (card.querySelector("span") || {}).textContent || ""
+      }));
+
+      const overviewHtml = `<table style="border-collapse:collapse;width:100%;font-family:Arial,Helvetica,sans-serif;margin:10px 0 14px;" cellspacing="0" cellpadding="0">
+        <tr>${overviewCards.map(card => `<th style="border:1px solid #cbd5e1;background:#ede9fe;color:#4c1d95;padding:9px 8px;text-align:center;font-weight:900;font-size:12px;">${htmlEscape(card.label)}</th>`).join("")}</tr>
+        <tr>${overviewCards.map(card => `<td style="border:1px solid #cbd5e1;background:#ffffff;color:#1f2937;padding:10px 8px;text-align:center;font-weight:800;font-size:12px;line-height:1.35;">${htmlEscape(card.value)}</td>`).join("")}</tr>
+      </table>`;
+
+      const studentTable = buildInlineFeedbackTable("#feedbackModal .student-route-table", "student");
+      const teacherTable = buildInlineFeedbackTable("#feedbackModal .teacher-table", "teacher");
+
+      const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body>
+  <div style="font-family:Arial,Helvetica,sans-serif;color:#1f2937;max-width:1120px;">
+    <h1 style="margin:0 0 6px;font-size:25px;line-height:1.2;color:#111827;">${htmlEscape(title)}</h1>
+    <p style="margin:0 0 12px;color:#4c1d95;font-weight:800;font-size:13px;">${htmlEscape(date)}</p>
+    <div style="background:#fff7ed;border:1px solid #fde68a;color:#713f12;padding:11px 12px;border-radius:10px;margin:0 0 12px;line-height:1.45;font-size:13px;">
+      <strong>${htmlEscape(heroStrong)}</strong><br>${htmlEscape(heroText)}
+    </div>
+    ${overviewHtml}
+    <p style="margin:0 0 14px;background:#eef2ff;border:1px solid #c7d2fe;border-left:6px solid #4f46e5;color:#312e81;padding:10px 12px;border-radius:10px;line-height:1.45;font-size:13px;">${htmlEscape(purpose)}</p>
+    <h2 style="margin:14px 0 8px;color:#1e293b;font-size:18px;">Student Route by Group</h2>
+    ${studentTable.html}
+    <h2 style="margin:14px 0 8px;color:#1e293b;font-size:18px;">Teacher Station Schedule</h2>
+    ${teacherTable.html}
+    <p style="margin:12px 0 0;color:#475569;line-height:1.45;font-size:13px;">${htmlEscape(hint)}</p>
+  </div>
+</body>
+</html>`;
+
+      const textRows = [title, date];
+      if (heroStrong || heroText) textRows.push(`${heroStrong} ${heroText}`.trim());
+      overviewCards.forEach(card => textRows.push([card.label, card.value].join("\t")));
+      if (purpose.trim()) textRows.push(purpose.trim());
+      textRows.push("Student Route by Group");
+      textRows.push(...studentTable.textRows);
+      textRows.push("Teacher Station Schedule");
+      textRows.push(...teacherTable.textRows);
+      if (hint.trim()) textRows.push(hint.trim());
+
+      return { html, text: textRows.join("\n") };
+    }
+
+    function markFeedbackCopyButton() {
+      const button = document.getElementById("feedbackCopyBtn");
+      if (!button) return;
+      const label = button.querySelector(".main-copy-label");
+      button.classList.add("copied");
+      if (label) label.textContent = "Copied";
+      setTimeout(() => {
+        button.classList.remove("copied");
+        if (label) label.textContent = "Copy";
+      }, 1600);
+    }
+
+    async function copyFeedbackProgram() {
+      const payload = buildWordReadyFeedbackProgramPayload();
+      let copied = false;
+
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          const item = new ClipboardItem({
+            "text/html": new Blob([payload.html], { type: "text/html" }),
+            "text/plain": new Blob([payload.text], { type: "text/plain" })
+          });
+          await navigator.clipboard.write([item]);
+          copied = true;
+        }
+      } catch (error) {
+        copied = false;
+      }
+
+      if (!copied) copied = fallbackCopyRichHtml(payload.html, payload.text);
+
+      if (copied) {
+        markFeedbackCopyButton();
+        showToast("Correction & Feedback copied for Word");
+      } else {
+        showToast("Copy was not allowed by this browser");
+      }
+    }
+
+
+    const mainCopyBtn = document.getElementById("mainCopyBtn");
+    if (mainCopyBtn) mainCopyBtn.addEventListener("click", copyMainPage);
+
+
+    bindClickSound();
+    setupLegendFilters();
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stopFarewellSpeech();
+    });
+
+    renderCalendar();
+    updatePreview();
+  </script>
+</body>
+</html>
